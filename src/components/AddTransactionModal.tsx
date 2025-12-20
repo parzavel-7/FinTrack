@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, TrendingDown, TrendingUp, Calendar, FileText, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -58,7 +59,7 @@ const AddTransactionModal = ({ isOpen, onClose }: AddTransactionModalProps) => {
     }, 1000);
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -77,9 +78,9 @@ const AddTransactionModal = ({ isOpen, onClose }: AddTransactionModalProps) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", duration: 0.3 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-50"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
+            <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-full max-w-md">
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-border">
                 <h2 className="text-xl font-semibold">Add Transaction</h2>
@@ -219,7 +220,8 @@ const AddTransactionModal = ({ isOpen, onClose }: AddTransactionModalProps) => {
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 
