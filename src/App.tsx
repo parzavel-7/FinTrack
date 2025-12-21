@@ -8,6 +8,9 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
+import Reports from "./pages/Reports";
+import AIInsights from "./pages/AIInsights";
+import Goals from "./pages/Goals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,10 +27,9 @@ const App = () => (
           <Route path="/signup" element={<Signup />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/transactions" element={<Transactions />} />
-          <Route path="/budgets" element={<Dashboard />} />
-          <Route path="/reports" element={<Dashboard />} />
-          <Route path="/ai-insights" element={<Dashboard />} />
-          <Route path="/goals" element={<Dashboard />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/ai-insights" element={<AIInsights />} />
+          <Route path="/goals" element={<Goals />} />
           <Route path="/settings" element={<Dashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
