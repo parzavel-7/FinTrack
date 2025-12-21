@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   ArrowRightLeft,
-  Wallet,
   BarChart3,
   Sparkles,
   Target,
@@ -25,7 +24,6 @@ interface AppLayoutProps {
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Transactions", icon: ArrowRightLeft, href: "/transactions" },
-  { label: "Budgets", icon: Wallet, href: "/budgets" },
   { label: "Reports", icon: BarChart3, href: "/reports" },
   { label: "AI Insights", icon: Sparkles, href: "/ai-insights" },
   { label: "Goals", icon: Target, href: "/goals" },
