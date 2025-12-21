@@ -10,13 +10,13 @@ import {
   Film,
   Briefcase,
   Car,
-  ArrowRight,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppLayout from "@/components/AppLayout";
 import AddTransactionModal from "@/components/AddTransactionModal";
+import { useTransactions } from "@/hooks/useTransactions";
+import { useAuth } from "@/hooks/useAuth";
 import {
   LineChart,
   Line,
@@ -29,14 +29,29 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { Link } from "react-router-dom";
+
+const categoryIcons: Record<string, any> = {
+  "Food & Dining": ShoppingCart,
+  "Entertainment": Film,
+  "Salary": Briefcase,
+  "Transportation": Car,
+};
 
 const Dashboard = () => {
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const { transactions, categories, loading, addTransaction, getTotals } = useTransactions();
+  const { user } = useAuth();
+
+  const totals = getTotals();
+  
+  // Get user's name from metadata or email
+  const userName = user?.user_metadata?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "User";
 
   const summaryCards = [
     {
       title: "Total Income",
-      value: "$4,250.00",
+      value: `$${totals.income.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
       change: "+5%",
       isPositive: true,
       icon: TrendingUp,
@@ -44,7 +59,7 @@ const Dashboard = () => {
     },
     {
       title: "Total Expenses",
-      value: "$1,200.00",
+      value: `$${totals.expenses.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
       change: "-2%",
       isPositive: true,
       icon: TrendingDown,
@@ -52,33 +67,58 @@ const Dashboard = () => {
     },
     {
       title: "Savings Balance",
-      value: "$12,500.00",
+      value: `$${totals.savings.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
       goal: "Goal: 80%",
       icon: PiggyBank,
       color: "text-primary",
     },
   ];
 
+  // Group expenses by category for pie chart
+  const categoryTotals = transactions
+    .filter((t) => t.type === "expense")
+    .reduce((acc, t) => {
+      const categoryName = t.category?.name || "Other";
+      acc[categoryName] = (acc[categoryName] || 0) + Number(t.amount);
+      return acc;
+    }, {} as Record<string, number>);
+
+  const colors = ["hsl(262, 60%, 58%)", "hsl(280, 50%, 70%)", "hsl(240, 10%, 50%)", "hsl(262, 30%, 40%)"];
+  const categoryData = Object.entries(categoryTotals).map(([name, value], index) => ({
+    name,
+    value,
+    color: colors[index % colors.length],
+  }));
+
+  // Group transactions by week for line chart
   const expenseData = [
-    { name: "Week 1", amount: 800 },
-    { name: "Week 2", amount: 1200 },
-    { name: "Week 3", amount: 900 },
-    { name: "Week 4", amount: 1400 },
+    { name: "Week 1", amount: totals.expenses * 0.2 },
+    { name: "Week 2", amount: totals.expenses * 0.3 },
+    { name: "Week 3", amount: totals.expenses * 0.25 },
+    { name: "Week 4", amount: totals.expenses * 0.25 },
   ];
 
-  const categoryData = [
-    { name: "Housing", value: 40, color: "hsl(262, 60%, 58%)" },
-    { name: "Food & Dining", value: 30, color: "hsl(280, 50%, 70%)" },
-    { name: "Transport", value: 20, color: "hsl(240, 10%, 50%)" },
-    { name: "Others", value: 10, color: "hsl(262, 30%, 40%)" },
-  ];
+  const recentTransactions = transactions.slice(0, 4).map((tx) => {
+    const Icon = categoryIcons[tx.category?.name || ""] || ShoppingCart;
+    return {
+      id: tx.id,
+      name: tx.description || tx.category?.name || "Transaction",
+      date: new Date(tx.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      amount: tx.type === "expense" ? -Number(tx.amount) : Number(tx.amount),
+      icon: Icon,
+      color: tx.type === "income" ? "bg-primary/20 text-primary" : "bg-destructive/20 text-destructive",
+    };
+  });
 
-  const recentTransactions = [
-    { id: 1, name: "Grocery Store", date: "Today, 10:23 AM", amount: -85.00, icon: ShoppingCart, color: "bg-success/20 text-success" },
-    { id: 2, name: "Netflix", date: "Yesterday", amount: -15.99, icon: Film, color: "bg-destructive/20 text-destructive" },
-    { id: 3, name: "Freelance Payment", date: "Oct 24, 2023", amount: 450.00, icon: Briefcase, color: "bg-primary/20 text-primary" },
-    { id: 4, name: "Uber Ride", date: "Oct 22, 2023", amount: -24.50, icon: Car, color: "bg-warning/20 text-warning" },
-  ];
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="h-8 w-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -86,7 +126,7 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Hello, Sarah</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">Hello, {userName}</h1>
             <p className="text-muted-foreground">Here's your financial overview for today.</p>
           </div>
           <Button variant="hero" onClick={() => setIsTransactionModalOpen(true)}>
@@ -146,7 +186,7 @@ const Dashboard = () => {
                   <div>
                     <CardTitle className="text-lg">Monthly Expenses Trend</CardTitle>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-2xl font-bold">$1,200.00</span>
+                      <span className="text-2xl font-bold">${totals.expenses.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
                       <span className="text-xs text-success bg-success/20 px-2 py-0.5 rounded-full">-2% vs last month</span>
                     </div>
                   </div>
@@ -205,36 +245,44 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="h-48 relative">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={categoryData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={80}
-                        paddingAngle={2}
-                        dataKey="value"
-                      >
-                        {categoryData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex items-center justify-center flex-col">
-                    <span className="text-xl font-bold">$1.2k</span>
-                    <span className="text-xs text-muted-foreground">Total</span>
-                  </div>
+                  {categoryData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={categoryData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={80}
+                          paddingAngle={2}
+                          dataKey="value"
+                        >
+                          {categoryData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                      No expense data yet
+                    </div>
+                  )}
+                  {categoryData.length > 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center flex-col">
+                      <span className="text-xl font-bold">${(totals.expenses / 1000).toFixed(1)}k</span>
+                      <span className="text-xs text-muted-foreground">Total</span>
+                    </div>
+                  )}
                 </div>
                 <div className="mt-4 space-y-2">
-                  {categoryData.map((cat) => (
+                  {categoryData.slice(0, 4).map((cat) => (
                     <div key={cat.name} className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
                         <div className="h-3 w-3 rounded-full" style={{ backgroundColor: cat.color }} />
                         <span className="text-muted-foreground">{cat.name}</span>
                       </div>
-                      <span className="font-medium">{cat.value}%</span>
+                      <span className="font-medium">${cat.value.toFixed(0)}</span>
                     </div>
                   ))}
                 </div>
@@ -260,11 +308,22 @@ const Dashboard = () => {
                 <div className="flex-1">
                   <h3 className="font-semibold">AI Insight</h3>
                   <p className="text-muted-foreground mt-1">
-                    You spent <span className="text-foreground font-medium">15% less</span> on dining out this month compared to your 3-month average. Great job keeping your budget on track!
+                    {transactions.length > 0 ? (
+                      <>
+                        You've recorded <span className="text-foreground font-medium">{transactions.length} transactions</span> so far. 
+                        {totals.savings > 0 
+                          ? ` Great job! You're saving $${totals.savings.toFixed(2)} this period.`
+                          : " Keep tracking to get personalized insights!"}
+                      </>
+                    ) : (
+                      "Start adding transactions to get personalized AI insights about your spending patterns!"
+                    )}
                   </p>
-                  <Button variant="outline" size="sm" className="mt-4">
-                    View Details
-                  </Button>
+                  <Link to="/ai-insights">
+                    <Button variant="outline" size="sm" className="mt-4">
+                      View Details
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </Card>
@@ -281,26 +340,34 @@ const Dashboard = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">Recent Transactions</CardTitle>
-                  <Button variant="link" size="sm" className="text-primary">
-                    View All
-                  </Button>
+                  <Link to="/transactions">
+                    <Button variant="link" size="sm" className="text-primary">
+                      View All
+                    </Button>
+                  </Link>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {recentTransactions.map((tx) => (
-                  <div key={tx.id} className="flex items-center gap-3">
-                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${tx.color}`}>
-                      <tx.icon size={18} />
+                {recentTransactions.length > 0 ? (
+                  recentTransactions.map((tx) => (
+                    <div key={tx.id} className="flex items-center gap-3">
+                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${tx.color}`}>
+                        <tx.icon size={18} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{tx.name}</p>
+                        <p className="text-xs text-muted-foreground">{tx.date}</p>
+                      </div>
+                      <span className={`font-semibold text-sm ${tx.amount > 0 ? "text-success" : "text-foreground"}`}>
+                        {tx.amount > 0 ? "+" : ""}{tx.amount.toFixed(2)}
+                      </span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{tx.name}</p>
-                      <p className="text-xs text-muted-foreground">{tx.date}</p>
-                    </div>
-                    <span className={`font-semibold text-sm ${tx.amount > 0 ? "text-success" : "text-foreground"}`}>
-                      {tx.amount > 0 ? "+" : ""}{tx.amount.toFixed(2)}
-                    </span>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-muted-foreground text-sm text-center py-4">
+                    No transactions yet
+                  </p>
+                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -309,7 +376,9 @@ const Dashboard = () => {
 
       <AddTransactionModal 
         isOpen={isTransactionModalOpen} 
-        onClose={() => setIsTransactionModalOpen(false)} 
+        onClose={() => setIsTransactionModalOpen(false)}
+        categories={categories}
+        onSubmit={addTransaction}
       />
     </AppLayout>
   );

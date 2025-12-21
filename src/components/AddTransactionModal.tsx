@@ -13,24 +13,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Category } from "@/hooks/useTransactions";
 
 interface AddTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
+  categories: Category[];
+  onSubmit: (transaction: {
+    amount: number;
+    type: "income" | "expense";
+    category_id: string;
+    date: string;
+    description?: string;
+  }) => Promise<{ error: Error | null }>;
 }
 
-const categories = [
-  { value: "food", label: "Food & Dining" },
-  { value: "transport", label: "Transport" },
-  { value: "shopping", label: "Shopping" },
-  { value: "entertainment", label: "Entertainment" },
-  { value: "utilities", label: "Utilities" },
-  { value: "health", label: "Health" },
-  { value: "income", label: "Income" },
-  { value: "other", label: "Other" },
-];
-
-const AddTransactionModal = ({ isOpen, onClose }: AddTransactionModalProps) => {
+const AddTransactionModal = ({ isOpen, onClose, categories, onSubmit }: AddTransactionModalProps) => {
   const [type, setType] = useState<"expense" | "income">("expense");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
@@ -39,24 +37,41 @@ const AddTransactionModal = ({ isOpen, onClose }: AddTransactionModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const filteredCategories = categories.filter((cat) => cat.type === type);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate save
-    setTimeout(() => {
-      setIsLoading(false);
+    const { error } = await onSubmit({
+      amount: parseFloat(amount),
+      type,
+      category_id: category,
+      date,
+      description: description || undefined,
+    });
+
+    setIsLoading(false);
+
+    if (error) {
       toast({
-        title: "Transaction saved",
-        description: `Your ${type} of $${amount} has been recorded.`,
+        title: "Error saving transaction",
+        description: error.message,
+        variant: "destructive",
       });
-      onClose();
-      // Reset form
-      setAmount("");
-      setCategory("");
-      setDescription("");
-      setType("expense");
-    }, 1000);
+      return;
+    }
+
+    toast({
+      title: "Transaction saved",
+      description: `Your ${type} of $${amount} has been recorded.`,
+    });
+    onClose();
+    // Reset form
+    setAmount("");
+    setCategory("");
+    setDescription("");
+    setType("expense");
   };
 
   return createPortal(
@@ -118,7 +133,10 @@ const AddTransactionModal = ({ isOpen, onClose }: AddTransactionModalProps) => {
                   <div className="inline-flex bg-secondary/50 rounded-xl p-1">
                     <button
                       type="button"
-                      onClick={() => setType("expense")}
+                      onClick={() => {
+                        setType("expense");
+                        setCategory("");
+                      }}
                       className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                         type === "expense"
                           ? "bg-primary text-primary-foreground shadow-md"
@@ -130,7 +148,10 @@ const AddTransactionModal = ({ isOpen, onClose }: AddTransactionModalProps) => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setType("income")}
+                      onClick={() => {
+                        setType("income");
+                        setCategory("");
+                      }}
                       className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                         type === "income"
                           ? "bg-primary text-primary-foreground shadow-md"
@@ -155,9 +176,9 @@ const AddTransactionModal = ({ isOpen, onClose }: AddTransactionModalProps) => {
                         </div>
                       </SelectTrigger>
                       <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat.value} value={cat.value}>
-                            {cat.label}
+                        {filteredCategories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

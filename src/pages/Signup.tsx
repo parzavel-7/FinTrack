@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Check } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import Logo from "@/components/Logo";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -21,6 +22,13 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signUp, user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const passwordStrength = () => {
     const { password } = formData;
@@ -60,17 +68,35 @@ const Signup = () => {
       return;
     }
 
+    if (formData.password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
-    // Simulate signup - replace with actual auth
-    setTimeout(() => {
-      setIsLoading(false);
+    const { error } = await signUp(formData.email, formData.password, formData.fullName);
+
+    setIsLoading(false);
+
+    if (error) {
       toast({
-        title: "Account created!",
-        description: "Welcome to FinTrack. Let's set up your dashboard.",
+        title: "Sign up failed",
+        description: error.message,
+        variant: "destructive",
       });
-      navigate("/dashboard");
-    }, 1500);
+      return;
+    }
+
+    toast({
+      title: "Account created!",
+      description: "Welcome to FinTrack. Let's set up your dashboard.",
+    });
+    navigate("/dashboard");
   };
 
   return (
