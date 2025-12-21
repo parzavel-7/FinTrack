@@ -14,7 +14,158 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      categories: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          icon: string | null
+          id: string
+          name: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      goals: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          current_amount: number | null
+          deadline: string | null
+          icon: string | null
+          id: string
+          name: string
+          status: string | null
+          target_amount: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          current_amount?: number | null
+          deadline?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          status?: string | null
+          target_amount: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          current_amount?: number | null
+          deadline?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          status?: string | null
+          target_amount?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          currency: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          theme: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          currency?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          theme?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          currency?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          theme?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          category_id: string | null
+          created_at: string | null
+          date: string
+          description: string | null
+          id: string
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
