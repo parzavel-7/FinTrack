@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Sparkles,
@@ -10,55 +11,93 @@ import {
   ShoppingCart,
   Coffee,
   Zap,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppLayout from "@/components/AppLayout";
+import { useTransactions } from "@/hooks/useTransactions";
+import { useGoals } from "@/hooks/useGoals";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface AIInsight {
+  type: "positive" | "warning" | "tip";
+  title: string;
+  description: string;
+}
+
+interface SpendingPattern {
+  category: string;
+  status: "good" | "warning" | "alert";
+  advice: string;
+}
+
+interface AIResponse {
+  insights: AIInsight[];
+  spendingPatterns: SpendingPattern[];
+  recommendations: string[];
+  summary: string;
+}
 
 const AIInsights = () => {
-  const insights = [
-    {
-      type: "positive",
-      icon: TrendingUp,
-      title: "Great job on groceries!",
-      description: "You spent 20% less on groceries this month compared to your 3-month average. Keep up the smart shopping!",
-      action: "View Details",
-    },
-    {
-      type: "warning",
-      icon: AlertTriangle,
-      title: "Dining spending alert",
-      description: "You've used 85% of your dining budget with 10 days left. Consider cooking at home more often.",
-      action: "Adjust Budget",
-    },
-    {
-      type: "tip",
-      icon: Lightbulb,
-      title: "Savings opportunity",
-      description: "Based on your spending patterns, you could save an extra $150/month by reducing subscription services.",
-      action: "See How",
-    },
-    {
-      type: "positive",
-      icon: Target,
-      title: "Emergency fund on track",
-      description: "At your current rate, you'll reach your $10,000 emergency fund goal by December 2024.",
-      action: "View Progress",
-    },
-  ];
+  const { transactions, loading: transactionsLoading } = useTransactions();
+  const { goals, loading: goalsLoading } = useGoals();
+  const { toast } = useToast();
+  
+  const [aiData, setAiData] = useState<AIResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const spendingPatterns = [
-    { category: "Food & Dining", current: 450, average: 520, icon: Coffee, trend: "down" },
-    { category: "Shopping", current: 280, average: 250, icon: ShoppingCart, trend: "up" },
-    { category: "Utilities", current: 120, average: 115, icon: Zap, trend: "up" },
-  ];
+  const fetchInsights = async () => {
+    if (transactions.length === 0) {
+      setError("Add some transactions to get AI insights");
+      return;
+    }
 
-  const recommendations = [
-    "Consider switching to a no-fee credit card to save $95/year",
-    "Your car insurance renews next month - shop around for better rates",
-    "Set up automatic transfers of $200 to savings each payday",
-    "Cancel unused gym membership to save $49/month",
-  ];
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-insights", {
+        body: { transactions, goals },
+      });
+
+      if (error) throw error;
+
+      setAiData(data);
+    } catch (err: any) {
+      console.error("Error fetching insights:", err);
+      setError(err.message || "Failed to fetch AI insights");
+      toast({
+        title: "Error",
+        description: "Could not fetch AI insights. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!transactionsLoading && !goalsLoading && transactions.length > 0 && !aiData) {
+      fetchInsights();
+    }
+  }, [transactionsLoading, goalsLoading, transactions.length]);
+
+  const getInsightIcon = (type: string) => {
+    switch (type) {
+      case "positive":
+        return TrendingUp;
+      case "warning":
+        return AlertTriangle;
+      case "tip":
+        return Lightbulb;
+      default:
+        return Target;
+    }
+  };
 
   const getInsightColor = (type: string) => {
     switch (type) {
@@ -86,6 +125,21 @@ const AIInsights = () => {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "good":
+        return "text-success";
+      case "warning":
+        return "text-warning";
+      case "alert":
+        return "text-destructive";
+      default:
+        return "text-muted-foreground";
+    }
+  };
+
+  const isLoading = transactionsLoading || goalsLoading || loading;
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -100,144 +154,156 @@ const AIInsights = () => {
             </h1>
             <p className="text-muted-foreground mt-1">Personalized financial intelligence powered by AI</p>
           </div>
-          <Button variant="outline">
+          <Button 
+            variant="outline" 
+            onClick={fetchInsights} 
+            disabled={isLoading || transactions.length === 0}
+          >
+            <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
             Refresh Insights
           </Button>
         </div>
 
-        {/* Main Insights */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {insights.map((insight, index) => (
+        {isLoading ? (
+          <Card variant="glass" className="py-12">
+            <div className="flex flex-col items-center justify-center gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground">Analyzing your financial data...</p>
+            </div>
+          </Card>
+        ) : error || transactions.length === 0 ? (
+          <Card variant="glass" className="py-12">
+            <div className="text-center">
+              <Sparkles className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No data to analyze</h3>
+              <p className="text-muted-foreground mb-4">
+                {error || "Add some transactions to get personalized AI insights"}
+              </p>
+            </div>
+          </Card>
+        ) : aiData ? (
+          <>
+            {/* Main Insights */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {aiData.insights.map((insight, index) => {
+                const IconComponent = getInsightIcon(insight.type);
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className={`border ${getInsightColor(insight.type)}`}>
+                      <CardContent className="p-5">
+                        <div className="flex gap-4">
+                          <div className={`h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0 ${getIconColor(insight.type)}`}>
+                            <IconComponent size={24} />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold">{insight.title}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">{insight.description}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Spending Patterns & Recommendations */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Spending Patterns */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Card variant="glass">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Spending Patterns</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {aiData.spendingPatterns.map((pattern, index) => (
+                      <div key={index} className="flex items-start gap-4">
+                        <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
+                          <ShoppingCart size={18} className="text-muted-foreground" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-medium">{pattern.category}</span>
+                            <span className={`text-xs font-medium uppercase ${getStatusColor(pattern.status)}`}>
+                              {pattern.status}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{pattern.advice}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Smart Recommendations */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <Card variant="glass">
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <Lightbulb size={20} className="text-primary" />
+                      <CardTitle className="text-lg">Smart Recommendations</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {aiData.recommendations.map((rec, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
+                      >
+                        <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <DollarSign size={12} className="text-primary" />
+                        </div>
+                        <p className="text-sm">{rec}</p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+
+            {/* AI Summary */}
             <motion.div
-              key={index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: 0.6 }}
             >
-              <Card className={`border ${getInsightColor(insight.type)}`}>
-                <CardContent className="p-5">
-                  <div className="flex gap-4">
-                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0 ${getIconColor(insight.type)}`}>
-                      <insight.icon size={24} />
+              <Card variant="glow" className="bg-gradient-subtle">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="h-14 w-14 rounded-2xl bg-gradient-primary flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="text-primary-foreground" size={28} />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{insight.title}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">{insight.description}</p>
-                      <Button variant="link" size="sm" className="px-0 mt-2 text-primary">
-                        {insight.action} →
-                      </Button>
+                    <div>
+                      <h3 className="text-lg font-semibold">Monthly AI Summary</h3>
+                      <p className="text-muted-foreground mt-2 leading-relaxed">
+                        {aiData.summary}
+                      </p>
+                      <div className="flex gap-3 mt-4">
+                        <Button variant="hero" size="sm" onClick={fetchInsights}>
+                          Refresh Analysis
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
-          ))}
-        </div>
-
-        {/* Spending Patterns & Recommendations */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Spending Patterns */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Card variant="glass">
-              <CardHeader>
-                <CardTitle className="text-lg">Spending Patterns</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {spendingPatterns.map((pattern, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
-                      <pattern.icon size={18} className="text-muted-foreground" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">{pattern.category}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold">${pattern.current}</span>
-                          <span className="text-xs text-muted-foreground">avg: ${pattern.average}</span>
-                          {pattern.trend === "down" ? (
-                            <TrendingDown size={14} className="text-success" />
-                          ) : (
-                            <TrendingUp size={14} className="text-destructive" />
-                          )}
-                        </div>
-                      </div>
-                      <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all ${
-                            pattern.current <= pattern.average ? "bg-success" : "bg-warning"
-                          }`}
-                          style={{ width: `${Math.min((pattern.current / pattern.average) * 100, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Smart Recommendations */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <Card variant="glass">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Lightbulb size={20} className="text-primary" />
-                  <CardTitle className="text-lg">Smart Recommendations</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {recommendations.map((rec, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
-                  >
-                    <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <DollarSign size={12} className="text-primary" />
-                    </div>
-                    <p className="text-sm">{rec}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-
-        {/* AI Summary */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          <Card variant="glow" className="bg-gradient-subtle">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="h-14 w-14 rounded-2xl bg-gradient-primary flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="text-primary-foreground" size={28} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Monthly AI Summary</h3>
-                  <p className="text-muted-foreground mt-2 leading-relaxed">
-                    Overall, you're doing well financially this month. Your total spending is <span className="text-foreground font-medium">8% below</span> your monthly average, 
-                    and you're on track to save an extra <span className="text-success font-medium">$320</span> compared to last month. 
-                    Focus on reducing dining expenses and consider the recommendations above to optimize your finances further.
-                  </p>
-                  <div className="flex gap-3 mt-4">
-                    <Button variant="hero" size="sm">Get Detailed Analysis</Button>
-                    <Button variant="outline" size="sm">Share Report</Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+          </>
+        ) : null}
       </div>
     </AppLayout>
   );
