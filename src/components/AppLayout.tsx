@@ -83,19 +83,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             Settings
           </Link>
         </div>
-
-        {/* User Profile */}
-        <div className="mt-4 pt-4 border-t border-border">
-          <Link to="/settings" className="flex items-center gap-3 px-2 hover:bg-secondary/50 rounded-lg py-2 transition-colors">
-            <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center">
-              <User size={20} className="text-primary-foreground" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">View Profile</p>
-              <p className="text-xs text-muted-foreground truncate">Manage settings</p>
-            </div>
-          </Link>
-        </div>
       </aside>
 
       {/* Main Content */}
@@ -141,18 +128,22 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell size={20} />
-                <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive" />
-              </Button>
+              <Link to="/settings?tab=notifications">
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell size={20} />
+                  <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive" />
+                </Button>
+              </Link>
               <Link to="/settings">
                 <Button variant="ghost" size="icon">
                   <Settings size={20} />
                 </Button>
               </Link>
-              <div className="h-9 w-9 rounded-full bg-gradient-primary flex items-center justify-center cursor-pointer">
-                <User size={18} className="text-primary-foreground" />
-              </div>
+              <Link to="/settings">
+                <div className="h-9 w-9 rounded-full bg-gradient-primary flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
+                  <User size={18} className="text-primary-foreground" />
+                </div>
+              </Link>
             </div>
           </div>
         </header>
