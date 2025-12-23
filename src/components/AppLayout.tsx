@@ -86,15 +86,15 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
         {/* User Profile */}
         <div className="mt-4 pt-4 border-t border-border">
-          <div className="flex items-center gap-3 px-2">
+          <Link to="/settings" className="flex items-center gap-3 px-2 hover:bg-secondary/50 rounded-lg py-2 transition-colors">
             <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center">
               <User size={20} className="text-primary-foreground" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">Alex Morgan</p>
-              <p className="text-xs text-muted-foreground truncate">View Profile</p>
+              <p className="text-sm font-medium truncate">View Profile</p>
+              <p className="text-xs text-muted-foreground truncate">Manage settings</p>
             </div>
-          </div>
+          </Link>
         </div>
       </aside>
 
