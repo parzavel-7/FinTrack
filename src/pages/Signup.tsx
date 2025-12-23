@@ -33,8 +33,10 @@ const Signup = () => {
   const passwordStrength = () => {
     const { password } = formData;
     if (password.length === 0) return { level: 0, text: "", color: "" };
-    if (password.length < 6) return { level: 1, text: "Weak", color: "bg-destructive" };
-    if (password.length < 10) return { level: 2, text: "Fair", color: "bg-warning" };
+    if (password.length < 6)
+      return { level: 1, text: "Weak", color: "bg-destructive" };
+    if (password.length < 10)
+      return { level: 2, text: "Fair", color: "bg-warning" };
     if (password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)) {
       return { level: 4, text: "Strong", color: "bg-success" };
     }
@@ -49,7 +51,7 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Passwords don't match",
@@ -79,7 +81,11 @@ const Signup = () => {
 
     setIsLoading(true);
 
-    const { error } = await signUp(formData.email, formData.password, formData.fullName);
+    const { error } = await signUp(
+      formData.email,
+      formData.password,
+      formData.fullName
+    );
 
     setIsLoading(false);
 
@@ -106,7 +112,9 @@ const Signup = () => {
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <Logo size="md" />
           <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground hidden sm:block">Already have an account?</span>
+            <span className="text-sm text-muted-foreground hidden sm:block">
+              Already have an account?
+            </span>
             <Link to="/login">
               <Button variant="outline" size="sm">
                 Log In
@@ -170,7 +178,9 @@ const Signup = () => {
                 <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-3 text-muted-foreground">Or sign up with email</span>
+                <span className="bg-card px-3 text-muted-foreground">
+                  Or sign up with email
+                </span>
               </div>
             </div>
 
@@ -178,7 +188,10 @@ const Signup = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Full Name</label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                  <User
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    size={18}
+                  />
                   <Input
                     name="fullName"
                     type="text"
@@ -194,7 +207,10 @@ const Signup = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email Address</label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                  <Mail
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    size={18}
+                  />
                   <Input
                     name="email"
                     type="email"
@@ -211,7 +227,10 @@ const Signup = () => {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Password</label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                    <Lock
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                      size={18}
+                    />
                     <Input
                       name="password"
                       type={showPassword ? "text" : "password"}
@@ -258,19 +277,25 @@ const Signup = () => {
                     ))}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Password strength: <span className="font-medium">{strength.text}</span>
+                    Password strength:{" "}
+                    <span className="font-medium">{strength.text}</span>
                   </p>
                 </div>
               )}
 
-              <div className="flex items-start gap-2">
+              {/* <div className="flex items-start gap-2">
                 <Checkbox
                   id="terms"
                   checked={agreedToTerms}
-                  onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
+                  onCheckedChange={(checked) =>
+                    setAgreedToTerms(checked as boolean)
+                  }
                   className="mt-0.5"
                 />
-                <label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer">
+                <label
+                  htmlFor="terms"
+                  className="text-sm text-muted-foreground cursor-pointer"
+                >
                   I agree to the{" "}
                   <Link to="/terms" className="text-primary hover:underline">
                     Terms of Service
@@ -281,7 +306,7 @@ const Signup = () => {
                   </Link>
                   .
                 </label>
-              </div>
+              </div> */}
 
               <Button
                 type="submit"
@@ -301,13 +326,6 @@ const Signup = () => {
               </Button>
             </form>
           </Card>
-
-          {/* Footer Links */}
-          <div className="flex justify-center gap-6 mt-8 text-sm text-muted-foreground">
-            <Link to="/help" className="hover:text-foreground transition-colors">Help Center</Link>
-            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-            <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-          </div>
         </motion.div>
       </main>
     </div>

@@ -1,5 +1,14 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Play, TrendingUp, Shield, Sparkles, PieChart, Target, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  Play,
+  TrendingUp,
+  Shield,
+  Sparkles,
+  PieChart,
+  Target,
+  Zap,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,17 +19,20 @@ const Landing = () => {
     {
       icon: PieChart,
       title: "Smart Budgeting",
-      description: "Create custom budgets and automatically adjust them based on your spending habits. Get alerts before you overspend.",
+      description:
+        "Create custom budgets and automatically adjust them based on your spending habits. Get alerts before you overspend.",
     },
     {
       icon: TrendingUp,
       title: "Expense Tracking",
-      description: "Connect your bank accounts and track every transaction automatically. Categorize spending with one click.",
+      description:
+        "Connect your bank accounts and track every transaction automatically. Categorize spending with one click.",
     },
     {
       icon: Target,
       title: "Goal Setting",
-      description: "Set financial goals for vacations, emergency funds, or a new car. Track your progress with beautiful charts.",
+      description:
+        "Set financial goals for vacations, emergency funds, or a new car. Track your progress with beautiful charts.",
     },
   ];
 
@@ -28,17 +40,20 @@ const Landing = () => {
     {
       number: "01",
       title: "Sign Up in Seconds",
-      description: "Create your free account. No credit card required. We prioritize your privacy from day one.",
+      description:
+        "Create your free account. No credit card required. We prioritize your privacy from day one.",
     },
     {
       number: "02",
       title: "Connect Your Accounts",
-      description: "Securely link your bank accounts, credit cards, and investment portfolios using bank-level encryption.",
+      description:
+        "Securely link your bank accounts, credit cards, and investment portfolios using bank-level encryption.",
     },
     {
       number: "03",
       title: "Get Instant Insights",
-      description: "See your net worth, spending trends, and budget recommendations immediately on your dashboard.",
+      description:
+        "See your net worth, spending trends, and budget recommendations immediately on your dashboard.",
     },
   ];
 
@@ -72,8 +87,7 @@ const Landing = () => {
                 >
                   Master Your
                   <br />
-                  Money with{" "}
-                  <span className="text-gradient">Confidence.</span>
+                  Money with <span className="text-gradient">Confidence.</span>
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0, y: 20 }}
@@ -81,7 +95,8 @@ const Landing = () => {
                   transition={{ delay: 0.2, duration: 0.5 }}
                   className="text-lg text-muted-foreground max-w-lg"
                 >
-                  Track spending, set budgets, and grow your savings in one secure place. Start building a better financial future today.
+                  Track spending, set budgets, and grow your savings in one
+                  secure place. Start building a better financial future today.
                 </motion.p>
               </div>
 
@@ -91,16 +106,17 @@ const Landing = () => {
                 transition={{ delay: 0.3, duration: 0.5 }}
                 className="flex flex-wrap gap-4"
               >
-                <Link to="/signup">
+                <Link to="/signup" className="flex flex-wrap gap-4">
                   <Button variant="hero" size="lg" className="group">
                     Start Tracking for Free
                     <ArrowRight className="ml-1 group-hover:translate-x-1 transition-transform" />
                   </Button>
+
+                  <Button variant="hero-outline" size="lg">
+                    <Play className="mr-1" size={18} />
+                    View Demo
+                  </Button>
                 </Link>
-                <Button variant="hero-outline" size="lg">
-                  <Play className="mr-1" size={18} />
-                  View Demo
-                </Button>
               </motion.div>
 
               <motion.div
@@ -111,11 +127,15 @@ const Landing = () => {
               >
                 <div className="flex items-center gap-2">
                   <Shield className="text-success" size={18} />
-                  <span className="text-sm text-muted-foreground">Bank-level security</span>
+                  <span className="text-sm text-muted-foreground">
+                    Bank-level security
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Zap className="text-warning" size={18} />
-                  <span className="text-sm text-muted-foreground">Real-time sync</span>
+                  <span className="text-sm text-muted-foreground">
+                    Real-time sync
+                  </span>
                 </div>
               </motion.div>
             </motion.div>
@@ -133,7 +153,9 @@ const Landing = () => {
                   {/* Mini Dashboard Preview */}
                   <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/50">
                     <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Total Balance</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                        Total Balance
+                      </p>
                       <p className="text-2xl font-bold">$24,592.00</p>
                     </div>
                     <div className="h-12 w-12 rounded-xl bg-gradient-primary flex items-center justify-center">
@@ -144,11 +166,15 @@ const Landing = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="p-3 rounded-lg bg-secondary/50">
                       <p className="text-xs text-muted-foreground">Income</p>
-                      <p className="text-lg font-semibold text-success">+$4,250</p>
+                      <p className="text-lg font-semibold text-success">
+                        +$4,250
+                      </p>
                     </div>
                     <div className="p-3 rounded-lg bg-secondary/50">
                       <p className="text-xs text-muted-foreground">Expenses</p>
-                      <p className="text-lg font-semibold text-destructive">-$1,200</p>
+                      <p className="text-lg font-semibold text-destructive">
+                        -$1,200
+                      </p>
                     </div>
                   </div>
 
@@ -174,13 +200,18 @@ const Landing = () => {
                 transition={{ delay: 0.8, duration: 0.5 }}
                 className="absolute -bottom-6 -left-6 z-10"
               >
-                <Card variant="glow" className="p-4 flex items-center gap-3 bg-card">
+                <Card
+                  variant="glow"
+                  className="p-4 flex items-center gap-3 bg-card"
+                >
                   <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center">
                     <Sparkles className="text-primary-foreground" size={18} />
                   </div>
                   <div>
                     <p className="text-sm font-medium">AI Insight</p>
-                    <p className="text-xs text-muted-foreground">You're 15% under budget!</p>
+                    <p className="text-xs text-muted-foreground">
+                      You're 15% under budget!
+                    </p>
                   </div>
                 </Card>
               </motion.div>
@@ -198,13 +229,16 @@ const Landing = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <span className="text-sm font-medium text-primary uppercase tracking-wider">Features</span>
+            <span className="text-sm font-medium text-primary uppercase tracking-wider">
+              Features
+            </span>
             <h2 className="text-3xl md:text-4xl font-bold mt-3 mb-4">
               Everything you need to manage your
               <br className="hidden md:block" /> personal finances
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Powerful tools to help you take control, from budgeting to investment tracking.
+              Powerful tools to help you take control, from budgeting to
+              investment tracking.
             </p>
           </motion.div>
 
@@ -217,11 +251,19 @@ const Landing = () => {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card variant="glass" className="h-full hover:shadow-glow-card transition-shadow duration-500">
+                <Card
+                  variant="glass"
+                  className="h-full hover:shadow-glow-card transition-shadow duration-500"
+                >
                   <div className="h-14 w-14 rounded-xl bg-gradient-primary flex items-center justify-center mb-5">
-                    <feature.icon className="text-primary-foreground" size={26} />
+                    <feature.icon
+                      className="text-primary-foreground"
+                      size={26}
+                    />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
+                  <h3 className="text-xl font-semibold mb-3">
+                    {feature.title}
+                  </h3>
                   <p className="text-muted-foreground">{feature.description}</p>
                 </Card>
               </motion.div>
@@ -239,8 +281,12 @@ const Landing = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">How FinTrack Works</h2>
-            <p className="text-muted-foreground">Three simple steps to financial freedom.</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              How FinTrack Works
+            </h2>
+            <p className="text-muted-foreground">
+              Three simple steps to financial freedom.
+            </p>
           </motion.div>
 
           <div className="space-y-8 max-w-3xl mx-auto">
@@ -275,7 +321,9 @@ const Landing = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <span className="text-sm font-medium text-primary uppercase tracking-wider">Bank-Level Security</span>
+              <span className="text-sm font-medium text-primary uppercase tracking-wider">
+                Bank-Level Security
+              </span>
               <h2 className="text-3xl md:text-4xl font-bold mt-3 mb-6">
                 Your data is safe,
                 <br />
@@ -283,7 +331,8 @@ const Landing = () => {
               </h2>
               <p className="text-muted-foreground mb-8 max-w-lg">
                 We use 256-bit encryption to protect your sensitive information.
-                We never sell your data, and our security ensures your money can't be touched.
+                We never sell your data, and our security ensures your money
+                can't be touched.
               </p>
 
               <div className="space-y-4">
@@ -293,7 +342,9 @@ const Landing = () => {
                   </div>
                   <div>
                     <p className="font-medium">256-Bit Encryption</p>
-                    <p className="text-sm text-muted-foreground">The standard used by major banks</p>
+                    <p className="text-sm text-muted-foreground">
+                      The standard used by major banks
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -302,7 +353,9 @@ const Landing = () => {
                   </div>
                   <div>
                     <p className="font-medium">Strict Privacy</p>
-                    <p className="text-sm text-muted-foreground">Your data belongs to you. Period.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Your data belongs to you. Period.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -338,11 +391,15 @@ const Landing = () => {
               Ready to take control of your financial future?
             </h2>
             <p className="text-primary-foreground/80 mb-8 max-w-xl mx-auto">
-              Join thousands of users who are saving more, spending less, and living better with FinTrack.
+              Join thousands of users who are saving more, spending less, and
+              living better with FinTrack.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link to="/signup">
-                <Button size="lg" className="bg-background text-foreground hover:bg-background/90">
+                <Button
+                  size="lg"
+                  className="bg-background text-foreground hover:bg-background/90"
+                >
                   Get Started Free
                 </Button>
               </Link>
@@ -366,36 +423,114 @@ const Landing = () => {
                 <span className="text-xl font-bold">FinTrack</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Making personal finance management accessible, secure, and effortless for everyone.
+                Making personal finance management accessible, secure, and
+                effortless for everyone.
               </p>
             </div>
 
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#features" className="hover:text-foreground transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Pricing</a></li>
-                <li><a href="#security" className="hover:text-foreground transition-colors">Security</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Integrations</a></li>
+                <li>
+                  <a
+                    href="#features"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Pricing
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#security"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Security
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Integrations
+                  </a>
+                </li>
               </ul>
             </div>
 
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Contact</a></li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    About Us
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Careers
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Contact
+                  </a>
+                </li>
               </ul>
             </div>
 
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Cookie Policy</a></li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Privacy Policy
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Terms of Service
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Cookie Policy
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
