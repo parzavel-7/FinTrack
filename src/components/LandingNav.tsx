@@ -1,10 +1,11 @@
+"use client";
+
 import { motion } from "framer-motion";
-import { Link, useLocation } from "react-router-dom";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
 
 const LandingNav = () => {
-  const location = useLocation();
 
   const navItems = [
     { label: "Features", href: "#features" },
@@ -35,12 +36,12 @@ const LandingNav = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link to="/login">
+          <Link href="/login">
             <Button variant="ghost" size="sm">
               Log In
             </Button>
           </Link>
-          <Link to="/signup">
+          <Link href="/signup">
             <Button variant="hero" size="sm">
               Get Started
             </Button>

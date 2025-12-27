@@ -6,13 +6,13 @@ import { useToast } from "./use-toast";
 export interface Goal {
   id: string;
   name: string;
-  icon: string | null;
-  color: string | null;
   target_amount: number;
   current_amount: number;
   deadline: string | null;
-  status: string | null;
-  created_at: string;
+  status: "in_progress" | "reached" | "missed";
+  icon: string | null;
+  color: string | null;
+  user_id: string;
 }
 
 export function useGoals() {
@@ -46,21 +46,37 @@ export function useGoals() {
     if (user) {
       setLoading(true);
       fetchGoals().finally(() => setLoading(false));
+
+      // Realtime subscription
+      const channel = supabase
+        .channel('goals-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'goals',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            fetchGoals();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
-  const addGoal = async (goal: {
-    name: string;
-    target_amount: number;
-    current_amount?: number;
-    deadline?: string;
-    icon?: string;
-    color?: string;
-  }) => {
+  const addGoal = async (goal: Omit<Goal, "id" | "user_id" | "status">) => {
     if (!user) return { error: new Error("Not authenticated") };
 
     const { error } = await supabase.from("goals").insert({
       ...goal,
+      current_amount: goal.current_amount || 0,
+      status: "in_progress",
       user_id: user.id,
     });
 
@@ -79,11 +95,6 @@ export function useGoals() {
       .eq("id", id);
 
     if (error) {
-      toast({
-        title: "Error updating goal",
-        description: error.message,
-        variant: "destructive",
-      });
       return { error };
     }
 
@@ -107,7 +118,7 @@ export function useGoals() {
   };
 
   const addFundsToGoal = async (id: string, amount: number) => {
-    const goal = goals.find((g) => g.id === id);
+    const goal = goals.find((g) => g.id === id); // Updated to use .id
     if (!goal) return { error: new Error("Goal not found") };
 
     const newAmount = Number(goal.current_amount) + amount;
@@ -126,8 +137,8 @@ export function useGoals() {
     addGoal,
     updateGoal,
     deleteGoal,
-    addFundsToGoal,
-    getTotals,
+    addFundsToGoal, // Included in return
+    getTotals,      // Included in return
     refetch: fetchGoals,
   };
 }

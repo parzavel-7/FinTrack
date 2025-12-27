@@ -4,15 +4,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 export interface Profile {
-  id: string;
-  user_id: string;
+  id: string; // This is the primary key (user_id) in profiles table
   full_name: string | null;
-  email: string | null;
-  avatar_url: string | null;
   currency: string;
-  theme: string;
-  created_at: string;
-  updated_at: string;
+  theme: "light" | "dark" | "system";
+  avatar_url: string | null;
+  user_id: string;
 }
 
 export function useProfile() {
@@ -21,52 +18,46 @@ export function useProfile() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchProfile();
-    }
-  }, [user]);
-
   const fetchProfile = async () => {
     if (!user) return;
     
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
 
-      if (error) throw error;
-      setProfile(data);
-    } catch (error: any) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setLoading(false);
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No profile found, user might need to be created in profiles table
+        console.log("No profile found for user");
+        return;
+      }
+      console.error("Error fetching profile:", error.message);
+      return;
     }
+
+    setProfile(data as Profile);
   };
 
+  useEffect(() => {
+    if (user) {
+      setLoading(true);
+      fetchProfile().finally(() => setLoading(false));
+    } else {
+        setProfile(null);
+    }
+  }, [user]);
+
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user || !profile) return { error: new Error("No user or profile") };
+    if (!user) return { error: new Error("Not authenticated") };
 
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id);
+    const { error } = await supabase
+      .from("profiles")
+      .update(updates)
+      .eq("user_id", user.id);
 
-      if (error) throw error;
-
-      setProfile({ ...profile, ...updates });
-      toast({
-        title: "Profile updated",
-        description: "Your changes have been saved successfully.",
-      });
-      return { error: null };
-    } catch (error: any) {
+    if (error) {
       toast({
         title: "Error updating profile",
         description: error.message,
@@ -74,6 +65,15 @@ export function useProfile() {
       });
       return { error };
     }
+
+    await fetchProfile();
+    
+    toast({
+      title: "Profile updated",
+      description: "Your changes have been saved.",
+    });
+
+    return { error: null };
   };
 
   const uploadAvatar = async (file: File) => {
@@ -81,29 +81,24 @@ export function useProfile() {
 
     try {
       const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const filePath = `${user.id}/${Math.random()}.${fileExt}`;
 
-      // Delete old avatar if exists
-      await supabase.storage.from("avatars").remove([fileName]);
-
-      // Upload new avatar
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(fileName, file, { upsert: true });
+        .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        throw uploadError;
+      }
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
+      const { data: { publicUrl } } = supabase.storage
         .from("avatars")
-        .getPublicUrl(fileName);
+        .getPublicUrl(filePath);
 
-      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      await updateProfile({ avatar_url: publicUrl });
 
-      // Update profile with new avatar URL
-      await updateProfile({ avatar_url: avatarUrl });
+      return { error: null, url: publicUrl };
 
-      return { error: null, url: avatarUrl };
     } catch (error: any) {
       toast({
         title: "Error uploading avatar",
@@ -115,29 +110,10 @@ export function useProfile() {
   };
 
   const removeAvatar = async () => {
-    if (!user) return { error: new Error("No user") };
-
-    try {
-      // Remove from storage
-      const { error: deleteError } = await supabase.storage
-        .from("avatars")
-        .remove([`${user.id}/avatar.png`, `${user.id}/avatar.jpg`, `${user.id}/avatar.jpeg`, `${user.id}/avatar.webp`]);
-
-      if (deleteError) console.warn("Error deleting avatar files:", deleteError);
-
-      // Update profile
-      await updateProfile({ avatar_url: null });
-
-      return { error: null };
-    } catch (error: any) {
-      toast({
-        title: "Error removing avatar",
-        description: error.message,
-        variant: "destructive",
-      });
-      return { error };
-    }
-  };
+      // Logic for removing avatar from storage could go here
+      // For now just clear the URL
+      return updateProfile({ avatar_url: null });
+  }
 
   return {
     profile,

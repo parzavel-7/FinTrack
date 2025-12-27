@@ -84,6 +84,28 @@ export function useTransactions() {
       Promise.all([fetchTransactions(), fetchCategories()]).finally(() => {
         setLoading(false);
       });
+
+      // Realtime subscription
+      const channel = supabase
+        .channel('transactions-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'transactions',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            console.log('Realtime change received!', payload);
+            fetchTransactions();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 

@@ -10,13 +10,13 @@ interface AddFundsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   goal: Goal | null;
+  onAddFunds: (id: string, amount: number) => Promise<{ error: Error | null }>;
 }
 
-export function AddFundsModal({ open, onOpenChange, goal }: AddFundsModalProps) {
+export function AddFundsModal({ open, onOpenChange, goal, onAddFunds }: AddFundsModalProps) {
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { addFundsToGoal } = useGoals();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,7 +26,7 @@ export function AddFundsModal({ open, onOpenChange, goal }: AddFundsModalProps) 
 
     setLoading(true);
 
-    const { error } = await addFundsToGoal(goal.id, parseFloat(amount));
+    const { error } = await onAddFunds(goal.id, parseFloat(amount));
 
     setLoading(false);
 

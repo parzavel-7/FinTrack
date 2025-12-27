@@ -1,0 +1,6 @@
+{
+  "/api/ai-insights/route": "app/api/ai-insights/route.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/page": "app/page.js",
+  "/transactions/page": "app/transactions/page.js"
+}

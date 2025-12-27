@@ -3,12 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useGoals } from "@/hooks/useGoals";
+import { Goal } from "@/hooks/useGoals";
 import { useToast } from "@/hooks/use-toast";
 
 interface AddGoalModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAdd: (goal: Omit<Goal, "id" | "user_id" | "status">) => Promise<{ error: Error | null }>;
 }
 
 const ICONS = ["Target", "Plane", "Home", "Car", "GraduationCap", "PiggyBank", "Briefcase", "Heart"];
@@ -21,7 +22,7 @@ const COLORS = [
   "hsl(350, 80%, 60%)",
 ];
 
-export function AddGoalModal({ open, onOpenChange }: AddGoalModalProps) {
+export function AddGoalModal({ open, onOpenChange, onAdd }: AddGoalModalProps) {
   const [name, setName] = useState("");
   const [targetAmount, setTargetAmount] = useState("");
   const [currentAmount, setCurrentAmount] = useState("");
@@ -30,7 +31,6 @@ export function AddGoalModal({ open, onOpenChange }: AddGoalModalProps) {
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
   const [loading, setLoading] = useState(false);
 
-  const { addGoal } = useGoals();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,11 +47,11 @@ export function AddGoalModal({ open, onOpenChange }: AddGoalModalProps) {
 
     setLoading(true);
 
-    const { error } = await addGoal({
+    const { error } = await onAdd({
       name,
       target_amount: parseFloat(targetAmount),
       current_amount: currentAmount ? parseFloat(currentAmount) : 0,
-      deadline: deadline || undefined,
+      deadline: deadline || null,
       icon: selectedIcon,
       color: selectedColor,
     });

@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom";
-import { Database } from "lucide-react";
+import Link from "next/link";
 
 interface LogoProps {
   size?: "sm" | "md" | "lg";
@@ -20,16 +19,21 @@ const Logo = ({ size = "md", showText = true }: LogoProps) => {
   };
 
   return (
-    <Link to="/" className="flex items-center gap-2.5 group">
+    <Link href="/" className="flex items-center gap-2.5 group">
       <div className="relative">
-        <div className={`${sizes[size]} rounded-lg bg-gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:shadow-primary/50 transition-shadow duration-300`}>
-          <Database className="text-primary-foreground" size={size === "sm" ? 14 : size === "md" ? 18 : 22} />
+        <div className={`${sizes[size]} `}>
+          <img
+            src="/logo.png"
+            alt="FinTrack"
+            className="object-contain h-full w-full"
+          />
         </div>
         <div className="absolute inset-0 rounded-lg bg-gradient-primary opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-300" />
       </div>
       {showText && (
-        <span className={`${textSizes[size]} font-bold text-foreground tracking-tight`}>
-          FinTrack
+        <span className={`${textSizes[size]} font-bold tracking-tight`}>
+          <span className="text-white">Fin</span>
+          <span style={{ color: "#8A5AD4" }}>Track</span>
         </span>
       )}
     </Link>

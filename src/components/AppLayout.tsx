@@ -1,4 +1,5 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
@@ -12,10 +13,13 @@ import {
   Search,
   User,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import Logo from "@/components/Logo";
-import { useToast } from "@/hooks/use-toast";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import Logo from "./Logo";
+import { useToast } from "../hooks/use-toast";
+import { useProfile } from "../hooks/useProfile";
+import { useAuth } from "../hooks/useAuth";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -30,16 +34,30 @@ const navItems = [
 ];
 
 const AppLayout = ({ children }: AppLayoutProps) => {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
   const { toast } = useToast();
+  const { profile } = useProfile();
+  const { user } = useAuth();
+
+  const getInitials = () => {
+    if (profile?.full_name) {
+      return profile.full_name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    return user?.email?.[0]?.toUpperCase() || "U";
+  };
 
   const handleLogout = () => {
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",
     });
-    navigate("/");
+    router.push("/");
   };
 
   return (
@@ -52,11 +70,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
         <nav className="flex-1 space-y-1">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.href;
+            const isActive = pathname === item.href;
             return (
               <Link
                 key={item.href}
-                to={item.href}
+                href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? "bg-primary/10 text-primary border-l-2 border-primary"
@@ -72,9 +90,9 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
         <div className="pt-4 border-t border-border space-y-1">
           <Link
-            to="/settings"
+            href="/settings"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-              location.pathname === "/settings"
+              pathname === "/settings"
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary"
             }`}
@@ -98,7 +116,10 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             {/* Search */}
             <div className="hidden md:flex flex-1 max-w-md">
               <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  size={18}
+                />
                 <Input
                   placeholder="Search transactions, categories..."
                   className="pl-10 bg-secondary/50"
@@ -109,11 +130,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             {/* Desktop Nav - Hidden on mobile, shown in header on desktop */}
             <div className="hidden lg:flex items-center gap-1">
               {navItems.slice(0, 5).map((item) => {
-                const isActive = location.pathname === item.href;
+                const isActive = pathname === item.href;
                 return (
                   <Link
                     key={item.href}
-                    to={item.href}
+                    href={item.href}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       isActive
                         ? "text-primary"
@@ -128,21 +149,27 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-2">
-              <Link to="/settings?tab=notifications">
+              <Link href="/settings?tab=notifications">
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell size={20} />
                   <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive" />
                 </Button>
               </Link>
-              <Link to="/settings">
+              <Link href="/settings">
                 <Button variant="ghost" size="icon">
                   <Settings size={20} />
                 </Button>
               </Link>
-              <Link to="/settings">
-                <div className="h-9 w-9 rounded-full bg-gradient-primary flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
-                  <User size={18} className="text-primary-foreground" />
-                </div>
+              <Link href="/settings">
+                <Avatar className="h-9 w-9 cursor-pointer hover:opacity-90 transition-opacity border-2 border-primary/20">
+                  <AvatarImage
+                    src={profile?.avatar_url || undefined}
+                    alt="Profile"
+                  />
+                  <AvatarFallback className="bg-gradient-primary text-primary-foreground text-sm font-medium">
+                    {getInitials()}
+                  </AvatarFallback>
+                </Avatar>
               </Link>
             </div>
           </div>
