@@ -1,3 +1,0 @@
-module.exports=[17678,a=>{"use strict";var b=a.i(84944),c=a.i(28846),d=a.i(45682),e=a.i(13684);a.s(["default",0,()=>{let a=(0,d.usePathname)();return(0,e.useEffect)(()=>{console.error("404 Error: User attempted to access non-existent route:",a)},[a]),(0,b.jsx)("div",{className:"flex min-h-screen items-center justify-center bg-muted",children:(0,b.jsxs)("div",{className:"text-center",children:[(0,b.jsx)("h1",{className:"mb-4 text-4xl font-bold",children:"404"}),(0,b.jsx)("p",{className:"mb-4 text-xl text-muted-foreground",children:"Oops! Page not found"}),(0,b.jsx)(c.default,{href:"/",className:"text-primary underline hover:text-primary/90",children:"Return to Home"})]})})}])}];
-
-//# sourceMappingURL=FinTrack_fin_track_src_app_not-found_tsx_725e1e6a._.js.map

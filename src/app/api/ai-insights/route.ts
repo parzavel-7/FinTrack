@@ -5,7 +5,7 @@ export async function POST(req: Request) {
     const data = await req.json();
     const { transactions, goals, totals } = data;
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY?.trim();
     const appName = process.env.NEXT_PUBLIC_APP_NAME || "FinTrack";
 
     if (!apiKey) {
@@ -100,13 +100,16 @@ export async function POST(req: Request) {
       }
 
       console.error("OpenRouter API Error Status:", response.status);
-      console.error("OpenRouter API Error Detail:", errorDetail);
+
+      const errorMessage =
+        typeof errorDetail === "object"
+          ? errorDetail.error?.message || JSON.stringify(errorDetail)
+          : errorText;
 
       return NextResponse.json(
         {
           error: "AI provider error",
-          details:
-            errorDetail?.error?.message || "Failed to fetch from AI provider",
+          details: errorMessage,
         },
         { status: response.status }
       );
@@ -115,23 +118,22 @@ export async function POST(req: Request) {
     const result = await response.json();
 
     if (!result.choices?.[0]?.message?.content) {
-      console.error("AI Provider Response missing content:", result);
+      console.error("OpenRouter Response missing content:", result);
       throw new Error("AI provider returned an empty or invalid response.");
     }
 
     let aiContent;
     try {
       const rawContent = result.choices[0].message.content;
-      // More robust JSON parsing in case of markdown blocks
-      const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/);
-      const jsonString = jsonMatch ? jsonMatch[1] : rawContent;
-      aiContent = JSON.parse(jsonString);
+      aiContent = JSON.parse(rawContent);
     } catch (parseError) {
       console.error(
-        "Error parsing AI response content:",
+        "Error parsing OpenRouter response content:",
         result.choices[0].message.content
       );
-      throw new Error("Failed to parse AI response into the expected format.");
+      throw new Error(
+        "Failed to parse AI response. The model didn't return valid JSON."
+      );
     }
 
     return NextResponse.json({
