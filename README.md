@@ -1,67 +1,73 @@
-# FinTrack - Personal Finance Tracker
+# Welcome to your Lovable project
 
-FinTrack is a modern, comprehensive personal finance management application built to help you take control of your financial life.
+## Project info
 
-## Features
+**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
 
-- **Dashboard**: Get a bird's-eye view of your financial health.
-- **Transactions**: Track every dollar with categorized income and expenses.
-- **Budgeting**: Set and monitor monthly budgets for different categories.
-- **Goals**: Create savings goals and track your progress.
-- **AI Insights**: Receive personalized financial advice powered by AI.
-- **Secure**: Authentication and data storage powered by Supabase.
+## How can I edit this code?
 
-## Tech Stack
+There are several ways of editing your application.
 
-- **Framework**: [Next.js](https://nextjs.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
-- **Database & Auth**: [Supabase](https://supabase.com/)
-- **AI**: OpenAI API (Configurable)
+**Use Lovable**
 
-## Getting Started
+Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
 
-### Prerequisites
+Changes made via Lovable will be committed automatically to this repo.
 
-- Node.js (v18 or later)
-- npm or bun
-- A Supabase account
+**Use your preferred IDE**
 
-### Installation
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-1. Clone the repository:
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-   ```sh
-   git clone <YOUR_GIT_URL>
-   cd fin_track
-   ```
+Follow these steps:
 
-2. Install dependencies:
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
 
-   ```sh
-   npm install
-   ```
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
 
-3. Set up environment variables:
-   Create a `.env.local` file in the root directory and add your Supabase and OpenAI credentials:
+# Step 3: Install the necessary dependencies.
+npm i
 
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   OPENAI_API_KEY=your_openai_api_key
-   ```
+# Step 4: Start the development server with auto-reloading and an instant preview.
+npm run dev
+```
 
-4. Run the development server:
-   ```sh
-   npm run dev
-   ```
+**Edit a file directly in GitHub**
 
-## Local Development
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Use GitHub Codespaces**
 
-## Deployment
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## What technologies are used for this project?
 
-Check out the [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+This project is built with:
+
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
+
+## How can I deploy this project?
+
+Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+
+## Can I connect a custom domain to my Lovable project?
+
+Yes, you can!
+
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
