@@ -10,7 +10,10 @@ export async function POST(req: Request) {
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: "OpenRouter API key not configured" },
+        {
+          error:
+            "OPENROUTER_API_KEY not configured. Please add it to your .env.local file.",
+        },
         { status: 500 }
       );
     }
@@ -24,10 +27,23 @@ export async function POST(req: Request) {
       - Current Savings: $${totals.savings}
       
       Goals:
-      ${goals.map((g: any) => `- ${g.name}: Target $${g.target_amount}, Current $${g.current_amount}, Status: ${g.status}`).join('\n')}
+      ${goals
+        .map(
+          (g: any) =>
+            `- ${g.name}: Target $${g.target_amount}, Current $${g.current_amount}, Status: ${g.status}`
+        )
+        .join("\n")}
       
       Recent Transactions:
-      ${transactions.slice(0, 10).map((t: any) => `- ${t.date}: ${t.description || 'No description'} ($${t.amount}) - ${t.type}`).join('\n')}
+      ${transactions
+        .slice(0, 10)
+        .map(
+          (t: any) =>
+            `- ${t.date}: ${t.description || "No description"} ($${
+              t.amount
+            }) - ${t.type}`
+        )
+        .join("\n")}
       
       Respond STRICTLY in JSON format with the following structure:
       {
@@ -46,29 +62,33 @@ export async function POST(req: Request) {
       }
     `;
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "HTTP-Referer": "https://github.com/google/fintrack",
-        "X-Title": appName,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001", // Switched from Claude 3.5 Sonnet
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful financial assistant that provides concise, actionable insights in valid JSON format."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        response_format: { type: "json_object" }
-      }),
-    });
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "HTTP-Referer": "https://github.com/google/fintrack",
+          "X-Title": appName,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.0-flash-001",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a helpful financial assistant that provides concise, actionable insights in valid JSON format.",
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          response_format: { type: "json_object" },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -78,27 +98,46 @@ export async function POST(req: Request) {
       } catch {
         errorDetail = errorText;
       }
-      
+
       console.error("OpenRouter API Error Status:", response.status);
       console.error("OpenRouter API Error Detail:", errorDetail);
-      
+
       return NextResponse.json(
-        { 
-          error: "OpenRouter API error", 
-          details: errorDetail?.error?.message || "Failed to fetch from OpenRouter" 
+        {
+          error: "AI provider error",
+          details:
+            errorDetail?.error?.message || "Failed to fetch from AI provider",
         },
         { status: response.status }
       );
     }
 
     const result = await response.json();
-    const aiContent = JSON.parse(result.choices[0].message.content);
+
+    if (!result.choices?.[0]?.message?.content) {
+      console.error("AI Provider Response missing content:", result);
+      throw new Error("AI provider returned an empty or invalid response.");
+    }
+
+    let aiContent;
+    try {
+      const rawContent = result.choices[0].message.content;
+      // More robust JSON parsing in case of markdown blocks
+      const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/);
+      const jsonString = jsonMatch ? jsonMatch[1] : rawContent;
+      aiContent = JSON.parse(jsonString);
+    } catch (parseError) {
+      console.error(
+        "Error parsing AI response content:",
+        result.choices[0].message.content
+      );
+      throw new Error("Failed to parse AI response into the expected format.");
+    }
 
     return NextResponse.json({
       ...aiContent,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error: any) {
     console.error("AI Insights Route Error:", error);
     return NextResponse.json(

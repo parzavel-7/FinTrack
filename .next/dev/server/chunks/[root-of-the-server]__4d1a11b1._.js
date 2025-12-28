@@ -58,7 +58,7 @@ async function POST(req) {
         const appName = ("TURBOPACK compile-time value", "FinTrack") || "FinTrack";
         if (!apiKey) {
             return __TURBOPACK__imported__module__$5b$project$5d2f$FinTrack$2f$fin_track$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-                error: "OpenRouter API key not configured"
+                error: "OPENROUTER_API_KEY not configured. Please add it to your .env.local file."
             }, {
                 status: 500
             });
@@ -72,10 +72,10 @@ async function POST(req) {
       - Current Savings: $${totals.savings}
       
       Goals:
-      ${goals.map((g)=>`- ${g.name}: Target $${g.target_amount}, Current $${g.current_amount}, Status: ${g.status}`).join('\n')}
+      ${goals.map((g)=>`- ${g.name}: Target $${g.target_amount}, Current $${g.current_amount}, Status: ${g.status}`).join("\n")}
       
       Recent Transactions:
-      ${transactions.slice(0, 10).map((t)=>`- ${t.date}: ${t.description || 'No description'} ($${t.amount}) - ${t.type}`).join('\n')}
+      ${transactions.slice(0, 10).map((t)=>`- ${t.date}: ${t.description || "No description"} ($${t.amount}) - ${t.type}`).join("\n")}
       
       Respond STRICTLY in JSON format with the following structure:
       {
@@ -96,7 +96,7 @@ async function POST(req) {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${apiKey}`,
+                Authorization: `Bearer ${apiKey}`,
                 "HTTP-Referer": "https://github.com/google/fintrack",
                 "X-Title": appName,
                 "Content-Type": "application/json"
@@ -129,14 +129,28 @@ async function POST(req) {
             console.error("OpenRouter API Error Status:", response.status);
             console.error("OpenRouter API Error Detail:", errorDetail);
             return __TURBOPACK__imported__module__$5b$project$5d2f$FinTrack$2f$fin_track$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-                error: "OpenRouter API error",
-                details: errorDetail?.error?.message || "Failed to fetch from OpenRouter"
+                error: "AI provider error",
+                details: errorDetail?.error?.message || "Failed to fetch from AI provider"
             }, {
                 status: response.status
             });
         }
         const result = await response.json();
-        const aiContent = JSON.parse(result.choices[0].message.content);
+        if (!result.choices?.[0]?.message?.content) {
+            console.error("AI Provider Response missing content:", result);
+            throw new Error("AI provider returned an empty or invalid response.");
+        }
+        let aiContent;
+        try {
+            const rawContent = result.choices[0].message.content;
+            // More robust JSON parsing in case of markdown blocks
+            const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/);
+            const jsonString = jsonMatch ? jsonMatch[1] : rawContent;
+            aiContent = JSON.parse(jsonString);
+        } catch (parseError) {
+            console.error("Error parsing AI response content:", result.choices[0].message.content);
+            throw new Error("Failed to parse AI response into the expected format.");
+        }
         return __TURBOPACK__imported__module__$5b$project$5d2f$FinTrack$2f$fin_track$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             ...aiContent,
             timestamp: new Date().toISOString()
