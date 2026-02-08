@@ -44,8 +44,10 @@ import { useProfile, type Profile } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "next-themes";
 
 const currencies = [
+  { value: "NPR", label: "NPR (Rs.)", symbol: "Rs." },
   { value: "USD", label: "USD ($)", symbol: "$" },
   { value: "EUR", label: "EUR (€)", symbol: "€" },
   { value: "GBP", label: "GBP (£)", symbol: "£" },
@@ -63,8 +65,14 @@ const themes = [
 ];
 
 const SettingsContent = () => {
-  const { profile, loading, updateProfile, uploadAvatar, removeAvatar } =
-    useProfile();
+  const {
+    profile,
+    loading,
+    updateProfile,
+    updateEmail,
+    uploadAvatar,
+    removeAvatar,
+  } = useProfile();
   const { user, signOut } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -72,8 +80,9 @@ const SettingsContent = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [fullName, setFullName] = useState("");
-  const [currency, setCurrency] = useState("USD");
-  const [theme, setTheme] = useState<Profile["theme"]>("light");
+  const [email, setEmail] = useState("");
+  const [currency, setCurrency] = useState("NPR");
+  const [theme, setThemeState] = useState<Profile["theme"]>("light");
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
@@ -100,19 +109,46 @@ const SettingsContent = () => {
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name || "");
-      setCurrency(profile.currency || "USD");
-      setTheme(profile.theme || "light");
+      setCurrency(profile.currency || "NPR");
+      setThemeState(profile.theme || "light");
     }
-  }, [profile]);
+    if (user) {
+      setEmail(user.email || "");
+    }
+  }, [profile, user]);
+
+  const { setTheme: setNextTheme } = useTheme();
+
+  const handleThemeChange = (value: Profile["theme"]) => {
+    setThemeState(value);
+    setNextTheme(value);
+  };
 
   const handleSaveProfile = async () => {
     setSaving(true);
-    await updateProfile({
-      full_name: fullName,
-      currency,
-      theme,
-    });
-    setSaving(false);
+
+    try {
+      // Update profile data (name, currency, theme)
+      await updateProfile({
+        full_name: fullName,
+        currency,
+        theme,
+      });
+
+      // Update email if changed
+      if (email !== user?.email) {
+        await updateEmail(email);
+      }
+    } catch (error: any) {
+      console.error("Error saving profile:", error);
+      toast({
+        title: "Error saving profile",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleAvatarClick = () => {
@@ -323,7 +359,7 @@ const SettingsContent = () => {
                     />
                   </div>
 
-                  {/* Email (Read-only) */}
+                  {/* Email */}
                   <div className="space-y-2">
                     <Label htmlFor="email" className="flex items-center gap-2">
                       <Mail size={14} />
@@ -331,12 +367,13 @@ const SettingsContent = () => {
                     </Label>
                     <Input
                       id="email"
-                      value={user?.email || ""}
-                      disabled
-                      className="bg-secondary/50"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email address"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Email cannot be changed. Contact support if needed.
+                      Note: Changing your email will require confirmation at
+                      both the old and new addresses.
                     </p>
                   </div>
                 </CardContent>
@@ -393,7 +430,7 @@ const SettingsContent = () => {
                     <Select
                       value={theme}
                       onValueChange={(value) =>
-                        setTheme(value as Profile["theme"])
+                        handleThemeChange(value as Profile["theme"])
                       }
                     >
                       <SelectTrigger>
@@ -412,13 +449,21 @@ const SettingsContent = () => {
               </Card>
             </motion.div>
 
-            {/* Save Button */}
+            {/* Save Profile and Logout Buttons */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex justify-end"
+              className="flex justify-between items-center"
             >
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="text-destructive hover:bg-destructive/10"
+              >
+                <LogOut size={18} className="mr-2" />
+                Sign Out
+              </Button>
               <Button
                 variant="hero"
                 onClick={handleSaveProfile}
@@ -436,30 +481,6 @@ const SettingsContent = () => {
                   </>
                 )}
               </Button>
-            </motion.div>
-
-            {/* Account Actions */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <Card variant="glass" className="border-destructive/20">
-                <CardHeader>
-                  <CardTitle className="text-destructive">
-                    Danger Zone
-                  </CardTitle>
-                  <CardDescription>
-                    Irreversible account actions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button variant="destructive" onClick={handleLogout}>
-                    <LogOut size={18} className="mr-2" />
-                    Log Out
-                  </Button>
-                </CardContent>
-              </Card>
             </motion.div>
           </TabsContent>
 

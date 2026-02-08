@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export interface Profile {
-  id: string; // This is the primary key (user_id) in profiles table
+  id: string;
   full_name: string | null;
   currency: string;
   theme: "light" | "dark" | "system";
@@ -15,71 +15,62 @@ export interface Profile {
 export function useProfile() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchProfile = async () => {
-    if (!user) return;
-    
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .single();
+  const { data: profile, isLoading: loading } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // No profile found, user might need to be created in profiles table
-        console.log("No profile found for user");
-        return;
+      if (error) {
+        if (error.code === "PGRST116") return null;
+        throw error;
       }
-      console.error("Error fetching profile:", error.message);
-      return;
-    }
+      return data as Profile;
+    },
+    enabled: !!user,
+  });
 
-    setProfile(data as Profile);
-  };
+  const updateProfileMutation = useMutation({
+    mutationFn: async (updates: Partial<Profile>) => {
+      if (!user) throw new Error("Not authenticated");
 
-  useEffect(() => {
-    if (user) {
-      setLoading(true);
-      fetchProfile().finally(() => setLoading(false));
-    } else {
-        setProfile(null);
-    }
-  }, [user]);
+      const payload = {
+        user_id: user.id,
+        ...updates,
+        ...(profile?.id ? { id: profile.id } : {}),
+      };
 
-  const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return { error: new Error("Not authenticated") };
+      const { error } = await supabase
+        .from("profiles")
+        .upsert(payload, { onConflict: "user_id" });
 
-    const { error } = await supabase
-      .from("profiles")
-      .update(updates)
-      .eq("user_id", user.id);
-
-    if (error) {
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
+      toast({
+        title: "Profile updated",
+        description: "Your changes have been saved.",
+      });
+    },
+    onError: (error: any) => {
       toast({
         title: "Error updating profile",
         description: error.message,
         variant: "destructive",
       });
-      return { error };
-    }
+    },
+  });
 
-    await fetchProfile();
-    
-    toast({
-      title: "Profile updated",
-      description: "Your changes have been saved.",
-    });
-
-    return { error: null };
-  };
-
-  const uploadAvatar = async (file: File) => {
-    if (!user) return { error: new Error("No user"), url: null };
-
-    try {
+  const uploadAvatarMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!user) throw new Error("No user");
       const fileExt = file.name.split(".").pop();
       const filePath = `${user.id}/${Math.random()}.${fileExt}`;
 
@@ -87,40 +78,53 @@ export function useProfile() {
         .from("avatars")
         .upload(filePath, file);
 
-      if (uploadError) {
-        throw uploadError;
-      }
+      if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(filePath);
 
-      await updateProfile({ avatar_url: publicUrl });
-
-      return { error: null, url: publicUrl };
-
-    } catch (error: any) {
+      await updateProfileMutation.mutateAsync({ avatar_url: publicUrl });
+      return publicUrl;
+    },
+    onError: (error: any) => {
       toast({
         title: "Error uploading avatar",
         description: error.message,
         variant: "destructive",
       });
-      return { error, url: null };
-    }
-  };
+    },
+  });
 
-  const removeAvatar = async () => {
-      // Logic for removing avatar from storage could go here
-      // For now just clear the URL
-      return updateProfile({ avatar_url: null });
-  }
+  const updateEmailMutation = useMutation({
+    mutationFn: async (newEmail: string) => {
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Confirmation email sent",
+        description:
+          "Please check your new email address for a confirmation link.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error updating email",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   return {
-    profile,
+    profile: profile || null,
     loading,
-    updateProfile,
-    uploadAvatar,
-    removeAvatar,
-    refreshProfile: fetchProfile,
+    updateProfile: updateProfileMutation.mutateAsync,
+    updateEmail: updateEmailMutation.mutateAsync,
+    uploadAvatar: uploadAvatarMutation.mutateAsync,
+    removeAvatar: () => updateProfileMutation.mutateAsync({ avatar_url: null }),
+    refreshProfile: () =>
+      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] }),
   };
 }

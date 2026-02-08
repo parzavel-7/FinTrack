@@ -158,7 +158,7 @@ const Landing = () => {
                       <p className="text-xs text-muted-foreground uppercase tracking-wide">
                         Total Balance
                       </p>
-                      <p className="text-2xl font-bold">$24,592.00</p>
+                      <p className="text-2xl font-bold">Rs. 24,592.00</p>
                     </div>
                     <div className="h-12 w-12 rounded-xl bg-gradient-primary flex items-center justify-center">
                       <TrendingUp className="text-primary-foreground" />
@@ -169,13 +169,13 @@ const Landing = () => {
                     <div className="p-3 rounded-lg bg-secondary/50">
                       <p className="text-xs text-muted-foreground">Income</p>
                       <p className="text-lg font-semibold text-success">
-                        +$4,250
+                        +Rs. 4,250
                       </p>
                     </div>
                     <div className="p-3 rounded-lg bg-secondary/50">
                       <p className="text-xs text-muted-foreground">Expenses</p>
                       <p className="text-lg font-semibold text-destructive">
-                        -$1,200
+                        -Rs. 1,200
                       </p>
                     </div>
                   </div>

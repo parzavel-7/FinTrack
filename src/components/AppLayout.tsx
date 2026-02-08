@@ -12,6 +12,8 @@ import {
   LogOut,
   Search,
   User,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -20,6 +22,9 @@ import Logo from "./Logo";
 import { useToast } from "../hooks/use-toast";
 import { useProfile } from "../hooks/useProfile";
 import { useAuth } from "../hooks/useAuth";
+import { NotificationsPopover } from "./NotificationsPopover";
+import { useTheme } from "next-themes";
+import { useState, useEffect } from "react";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -37,8 +42,20 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
-  const { profile } = useProfile();
-  const { user } = useAuth();
+  const { profile, updateProfile } = useProfile();
+  const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const toggleTheme = async () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    await updateProfile({ theme: newTheme });
+  };
 
   const getInitials = () => {
     if (profile?.full_name) {
@@ -52,7 +69,8 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     return user?.email?.[0]?.toUpperCase() || "U";
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOut();
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",
@@ -100,6 +118,13 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             <Settings size={20} />
             Settings
           </Link>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-all duration-200"
+          >
+            <LogOut size={20} />
+            Logout
+          </button>
         </div>
       </aside>
 
@@ -149,12 +174,17 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-2">
-              <Link href="/settings?tab=notifications">
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell size={20} />
-                  <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive" />
+              {mounted && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleTheme}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
                 </Button>
-              </Link>
+              )}
+              <NotificationsPopover />
               <Link href="/settings">
                 <Button variant="ghost" size="icon">
                   <Settings size={20} />

@@ -26,16 +26,20 @@ import {
   Area,
 } from "recharts";
 import { useTransactions } from "@/hooks/useTransactions";
+import { useProfile } from "@/hooks/useProfile";
+import { formatCurrency } from "@/lib/utils";
 import { format, parseISO, startOfMonth, subMonths } from "date-fns";
 
 const Reports = () => {
   const { transactions, loading, getTotals } = useTransactions();
+  const { profile } = useProfile();
+  const currency = profile?.currency || "NPR";
   const { income, expenses, savings } = getTotals();
 
   // Calculate monthly data for charts
   const monthlyData = useMemo(() => {
     const months: Record<string, { income: number; expenses: number }> = {};
-    
+
     // Initialize last 6 months
     for (let i = 5; i >= 0; i--) {
       const date = subMonths(new Date(), i);
@@ -69,9 +73,27 @@ const Reports = () => {
   }, [monthlyData]);
 
   const reportSummary = [
-    { label: "Total Income", value: `$${income.toLocaleString()}`, change: "+12%", positive: true, icon: TrendingUp },
-    { label: "Total Expenses", value: `$${expenses.toLocaleString()}`, change: "+5%", positive: false, icon: TrendingDown },
-    { label: "Net Savings", value: `$${savings.toLocaleString()}`, change: savings >= 0 ? "+18%" : "-10%", positive: savings >= 0, icon: DollarSign },
+    {
+      label: "Total Income",
+      value: formatCurrency(income, currency),
+      change: "+12%",
+      positive: true,
+      icon: TrendingUp,
+    },
+    {
+      label: "Total Expenses",
+      value: formatCurrency(expenses, currency),
+      change: "+5%",
+      positive: false,
+      icon: TrendingDown,
+    },
+    {
+      label: "Net Savings",
+      value: formatCurrency(savings, currency),
+      change: savings >= 0 ? "+18%" : "-10%",
+      positive: savings >= 0,
+      icon: DollarSign,
+    },
   ];
 
   if (loading) {
@@ -90,8 +112,12 @@ const Reports = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Financial Reports</h1>
-            <p className="text-muted-foreground">Detailed analysis of your finances</p>
+            <h1 className="text-2xl md:text-3xl font-bold">
+              Financial Reports
+            </h1>
+            <p className="text-muted-foreground">
+              Detailed analysis of your finances
+            </p>
           </div>
           <div className="flex gap-3">
             <Button variant="outline">
@@ -117,10 +143,17 @@ const Reports = () => {
               <Card variant="glass">
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 rounded-xl bg-secondary flex items-center justify-center">
-                    <item.icon className={item.positive ? "text-success" : "text-destructive"} size={24} />
+                    <item.icon
+                      className={
+                        item.positive ? "text-success" : "text-destructive"
+                      }
+                      size={24}
+                    />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-muted-foreground">{item.label}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.label}
+                    </p>
                     <div className="flex items-baseline gap-2">
                       <span className="text-2xl font-bold">{item.value}</span>
                     </div>
@@ -158,18 +191,40 @@ const Reports = () => {
                 {transactions.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={monthlyData} barGap={8}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="hsl(var(--border))"
+                      />
+                      <XAxis
+                        dataKey="month"
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                      />
+                      <YAxis
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                      />
                       <Tooltip
+                        formatter={(value: number) => [
+                          formatCurrency(value, currency),
+                          value > 0 ? "Income" : "Expenses",
+                        ]}
                         contentStyle={{
                           backgroundColor: "hsl(var(--card))",
                           border: "1px solid hsl(var(--border))",
                           borderRadius: "8px",
                         }}
                       />
-                      <Bar dataKey="income" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="expenses" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                      <Bar
+                        dataKey="income"
+                        fill="hsl(var(--success))"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="expenses"
+                        fill="hsl(var(--destructive))"
+                        radius={[4, 4, 0, 0]}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -198,10 +253,24 @@ const Reports = () => {
                   {transactions.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={savingsData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="hsl(var(--border))"
+                        />
+                        <XAxis
+                          dataKey="month"
+                          stroke="hsl(var(--muted-foreground))"
+                          fontSize={12}
+                        />
+                        <YAxis
+                          stroke="hsl(var(--muted-foreground))"
+                          fontSize={12}
+                        />
                         <Tooltip
+                          formatter={(value: number) => [
+                            formatCurrency(value, currency),
+                            "Savings",
+                          ]}
                           contentStyle={{
                             backgroundColor: "hsl(var(--card))",
                             border: "1px solid hsl(var(--border))",
@@ -239,12 +308,36 @@ const Reports = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 {[
-                  { name: "Total Transactions", value: transactions.length.toString() },
-                  { name: "Income Transactions", value: transactions.filter(t => t.type === "income").length.toString() },
-                  { name: "Expense Transactions", value: transactions.filter(t => t.type === "expense").length.toString() },
-                  { name: "Average Transaction", value: transactions.length > 0 
-                    ? `$${Math.round(transactions.reduce((sum, t) => sum + Number(t.amount), 0) / transactions.length)}`
-                    : "$0"
+                  {
+                    name: "Total Transactions",
+                    value: transactions.length.toString(),
+                  },
+                  {
+                    name: "Income Transactions",
+                    value: transactions
+                      .filter((t) => t.type === "income")
+                      .length.toString(),
+                  },
+                  {
+                    name: "Expense Transactions",
+                    value: transactions
+                      .filter((t) => t.type === "expense")
+                      .length.toString(),
+                  },
+                  {
+                    name: "Average Transaction",
+                    value:
+                      transactions.length > 0
+                        ? formatCurrency(
+                            Math.round(
+                              transactions.reduce(
+                                (sum, t) => sum + Number(t.amount),
+                                0,
+                              ) / transactions.length,
+                            ),
+                            currency,
+                          )
+                        : formatCurrency(0, currency),
                   },
                 ].map((report, index) => (
                   <div

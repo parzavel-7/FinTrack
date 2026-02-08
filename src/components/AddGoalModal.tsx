@@ -1,18 +1,36 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Goal } from "@/hooks/useGoals";
 import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
+import { formatCurrency } from "@/lib/utils";
 
 interface AddGoalModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (goal: Omit<Goal, "id" | "user_id" | "status">) => Promise<{ error: Error | null }>;
+  onAdd: (
+    goal: Omit<Goal, "id" | "user_id" | "status">,
+  ) => Promise<{ error: Error | null }>;
 }
 
-const ICONS = ["Target", "Plane", "Home", "Car", "GraduationCap", "PiggyBank", "Briefcase", "Heart"];
+const ICONS = [
+  "Target",
+  "Plane",
+  "Home",
+  "Car",
+  "GraduationCap",
+  "PiggyBank",
+  "Briefcase",
+  "Heart",
+];
 const COLORS = [
   "hsl(262, 60%, 58%)",
   "hsl(142, 76%, 36%)",
@@ -32,10 +50,12 @@ export function AddGoalModal({ open, onOpenChange, onAdd }: AddGoalModalProps) {
   const [loading, setLoading] = useState(false);
 
   const { toast } = useToast();
+  const { profile } = useProfile();
+  const currency = profile?.currency || "NPR";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!name || !targetAmount) {
       toast({
         title: "Missing fields",
@@ -101,7 +121,9 @@ export function AddGoalModal({ open, onOpenChange, onAdd }: AddGoalModalProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="target">Target Amount ($)</Label>
+              <Label htmlFor="target">
+                Target Amount ({currency === "NPR" ? "Rs." : currency})
+              </Label>
               <Input
                 id="target"
                 type="number"
@@ -111,7 +133,9 @@ export function AddGoalModal({ open, onOpenChange, onAdd }: AddGoalModalProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="current">Current Amount ($)</Label>
+              <Label htmlFor="current">
+                Current Amount ({currency === "NPR" ? "Rs." : currency})
+              </Label>
               <Input
                 id="current"
                 type="number"
@@ -161,7 +185,9 @@ export function AddGoalModal({ open, onOpenChange, onAdd }: AddGoalModalProps) {
                   type="button"
                   onClick={() => setSelectedColor(color)}
                   className={`h-8 w-8 rounded-full transition-transform ${
-                    selectedColor === color ? "ring-2 ring-primary ring-offset-2 scale-110" : ""
+                    selectedColor === color
+                      ? "ring-2 ring-primary ring-offset-2 scale-110"
+                      : ""
                   }`}
                   style={{ backgroundColor: color }}
                 />
@@ -178,7 +204,12 @@ export function AddGoalModal({ open, onOpenChange, onAdd }: AddGoalModalProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" variant="hero" className="flex-1" disabled={loading}>
+            <Button
+              type="submit"
+              variant="hero"
+              className="flex-1"
+              disabled={loading}
+            >
               {loading ? "Creating..." : "Create Goal"}
             </Button>
           </div>

@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, TrendingDown, TrendingUp, Calendar, FileText, Tag } from "lucide-react";
+import {
+  X,
+  TrendingDown,
+  TrendingUp,
+  Calendar,
+  FileText,
+  Tag,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +21,8 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Category } from "@/hooks/useTransactions";
+import { useProfile } from "@/hooks/useProfile";
+import { formatCurrency } from "@/lib/utils";
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -28,7 +37,12 @@ interface AddTransactionModalProps {
   }) => Promise<{ error: Error | null }>;
 }
 
-const AddTransactionModal = ({ isOpen, onClose, categories, onSubmit }: AddTransactionModalProps) => {
+const AddTransactionModal = ({
+  isOpen,
+  onClose,
+  categories,
+  onSubmit,
+}: AddTransactionModalProps) => {
   const [type, setType] = useState<"expense" | "income">("expense");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
@@ -36,6 +50,8 @@ const AddTransactionModal = ({ isOpen, onClose, categories, onSubmit }: AddTrans
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { profile } = useProfile();
+  const currency = profile?.currency || "NPR";
 
   const filteredCategories = categories.filter((cat) => cat.type === type);
 
@@ -64,7 +80,7 @@ const AddTransactionModal = ({ isOpen, onClose, categories, onSubmit }: AddTrans
 
     toast({
       title: "Transaction saved",
-      description: `Your ${type} of $${amount} has been recorded.`,
+      description: `Your ${type} of ${formatCurrency(Number(amount), currency)} has been recorded.`,
     });
     onClose();
     // Reset form
@@ -111,10 +127,14 @@ const AddTransactionModal = ({ isOpen, onClose, categories, onSubmit }: AddTrans
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
                 {/* Amount */}
                 <div className="text-center">
-                  <label className="text-sm text-muted-foreground">Total Amount</label>
+                  <label className="text-sm text-muted-foreground">
+                    Total Amount
+                  </label>
                   <div className="relative mt-2 max-w-xs mx-auto">
                     <div className="flex items-center justify-center border border-border rounded-xl bg-secondary/30 px-6 py-4">
-                      <span className="text-2xl text-muted-foreground mr-2">$</span>
+                      <span className="text-xl text-muted-foreground mr-2">
+                        {currency === "NPR" ? "Rs." : currency}
+                      </span>
                       <input
                         type="number"
                         step="0.01"
@@ -167,7 +187,9 @@ const AddTransactionModal = ({ isOpen, onClose, categories, onSubmit }: AddTrans
                 {/* Category & Date Row */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm text-muted-foreground">Category</label>
+                    <label className="text-sm text-muted-foreground">
+                      Category
+                    </label>
                     <Select value={category} onValueChange={setCategory}>
                       <SelectTrigger className="bg-secondary/30">
                         <div className="flex items-center gap-2">
@@ -186,9 +208,14 @@ const AddTransactionModal = ({ isOpen, onClose, categories, onSubmit }: AddTrans
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm text-muted-foreground">Date</label>
+                    <label className="text-sm text-muted-foreground">
+                      Date
+                    </label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                      <Calendar
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                        size={16}
+                      />
                       <Input
                         type="date"
                         value={date}
@@ -201,9 +228,14 @@ const AddTransactionModal = ({ isOpen, onClose, categories, onSubmit }: AddTrans
 
                 {/* Description */}
                 <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">Description (Optional)</label>
+                  <label className="text-sm text-muted-foreground">
+                    Description (Optional)
+                  </label>
                   <div className="relative">
-                    <FileText className="absolute left-3 top-3 text-muted-foreground" size={16} />
+                    <FileText
+                      className="absolute left-3 top-3 text-muted-foreground"
+                      size={16}
+                    />
                     <Textarea
                       placeholder="Add a note..."
                       value={description}
@@ -242,7 +274,7 @@ const AddTransactionModal = ({ isOpen, onClose, categories, onSubmit }: AddTrans
         </>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 };
 

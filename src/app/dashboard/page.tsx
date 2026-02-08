@@ -20,6 +20,8 @@ import AddTransactionModal from "@/components/AddTransactionModal";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useGoals } from "@/hooks/useGoals";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { formatCurrency } from "@/lib/utils";
 import { AIInsightsCard } from "@/components/AIInsightsCard";
 import {
   LineChart,
@@ -37,26 +39,34 @@ import Link from "next/link";
 
 const categoryIcons: Record<string, any> = {
   "Food & Dining": ShoppingCart,
-  "Entertainment": Film,
-  "Salary": Briefcase,
-  "Transportation": Car,
+  Entertainment: Film,
+  Salary: Briefcase,
+  Transportation: Car,
 };
 
 const Dashboard = () => {
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
-  const { transactions, categories, loading, addTransaction, getTotals } = useTransactions();
+  const { transactions, categories, loading, addTransaction, getTotals } =
+    useTransactions();
   const { goals, loading: goalsLoading } = useGoals();
   const { user } = useAuth();
+  const { profile } = useProfile();
+
+  const currency = profile?.currency || "NPR";
 
   const totals = getTotals();
-  
-  // Get user's name from metadata or email
-  const userName = user?.user_metadata?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "User";
+
+  // Get user's name from profile, metadata or email
+  const userName =
+    profile?.full_name?.split(" ")[0] ||
+    user?.user_metadata?.full_name?.split(" ")[0] ||
+    user?.email?.split("@")[0] ||
+    "User";
 
   const summaryCards = [
     {
       title: "Total Income",
-      value: `$${totals.income.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+      value: formatCurrency(totals.income, currency),
       change: "+5%",
       isPositive: true,
       icon: TrendingUp,
@@ -64,7 +74,7 @@ const Dashboard = () => {
     },
     {
       title: "Total Expenses",
-      value: `$${totals.expenses.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+      value: formatCurrency(totals.expenses, currency),
       change: "-2%",
       isPositive: true,
       icon: TrendingDown,
@@ -72,7 +82,7 @@ const Dashboard = () => {
     },
     {
       title: "Savings Balance",
-      value: `$${totals.savings.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+      value: formatCurrency(totals.savings, currency),
       goal: "Goal: 80%",
       icon: PiggyBank,
       color: "text-primary",
@@ -82,18 +92,28 @@ const Dashboard = () => {
   // Group expenses by category for pie chart
   const categoryTotals = transactions
     .filter((t) => t.type === "expense")
-    .reduce((acc, t) => {
-      const categoryName = t.category?.name || "Other";
-      acc[categoryName] = (acc[categoryName] || 0) + Number(t.amount);
-      return acc;
-    }, {} as Record<string, number>);
+    .reduce(
+      (acc, t) => {
+        const categoryName = t.category?.name || "Other";
+        acc[categoryName] = (acc[categoryName] || 0) + Number(t.amount);
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-  const colors = ["hsl(262, 60%, 58%)", "hsl(280, 50%, 70%)", "hsl(240, 10%, 50%)", "hsl(262, 30%, 40%)"];
-  const categoryData = Object.entries(categoryTotals).map(([name, value], index) => ({
-    name,
-    value,
-    color: colors[index % colors.length],
-  }));
+  const colors = [
+    "hsl(262, 60%, 58%)",
+    "hsl(280, 50%, 70%)",
+    "hsl(240, 10%, 50%)",
+    "hsl(262, 30%, 40%)",
+  ];
+  const categoryData = Object.entries(categoryTotals).map(
+    ([name, value], index) => ({
+      name,
+      value,
+      color: colors[index % colors.length],
+    }),
+  );
 
   // Group transactions by week for line chart
   const expenseData = [
@@ -108,10 +128,17 @@ const Dashboard = () => {
     return {
       id: tx.id,
       name: tx.description || tx.category?.name || "Transaction",
-      date: new Date(tx.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      date: new Date(tx.date).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
       amount: tx.type === "expense" ? -Number(tx.amount) : Number(tx.amount),
       icon: Icon,
-      color: tx.type === "income" ? "bg-primary/20 text-primary" : "bg-destructive/20 text-destructive",
+      color:
+        tx.type === "income"
+          ? "bg-primary/20 text-primary"
+          : "bg-destructive/20 text-destructive",
     };
   });
 
@@ -131,10 +158,17 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Hello, {userName}</h1>
-            <p className="text-muted-foreground">Here's your financial overview for today.</p>
+            <h1 className="text-2xl md:text-3xl font-bold">
+              Hello, {userName}
+            </h1>
+            <p className="text-muted-foreground">
+              Here's your financial overview for today.
+            </p>
           </div>
-          <Button variant="hero" onClick={() => setIsTransactionModalOpen(true)}>
+          <Button
+            variant="hero"
+            onClick={() => setIsTransactionModalOpen(true)}
+          >
             <Plus size={18} />
             Add Transaction
           </Button>
@@ -152,16 +186,24 @@ const Dashboard = () => {
               <Card variant="glass" className="relative overflow-hidden">
                 <div className="flex items-start justify-between">
                   <div>
-                    <div className={`h-10 w-10 rounded-xl bg-secondary flex items-center justify-center mb-4`}>
+                    <div
+                      className={`h-10 w-10 rounded-xl bg-secondary flex items-center justify-center mb-4`}
+                    >
                       <card.icon className={card.color} size={20} />
                     </div>
-                    <p className="text-sm text-muted-foreground">{card.title}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {card.title}
+                    </p>
                     <p className="text-2xl font-bold mt-1">{card.value}</p>
                   </div>
                   {card.change && (
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                      card.isPositive ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
-                    }`}>
+                    <span
+                      className={`text-xs font-medium px-2 py-1 rounded-full ${
+                        card.isPositive
+                          ? "bg-success/20 text-success"
+                          : "bg-destructive/20 text-destructive"
+                      }`}
+                    >
                       {card.change}
                     </span>
                   )}
@@ -189,15 +231,25 @@ const Dashboard = () => {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-lg">Monthly Expenses Trend</CardTitle>
+                    <CardTitle className="text-lg">
+                      Monthly Expenses Trend
+                    </CardTitle>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-2xl font-bold">${totals.expenses.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
-                      <span className="text-xs text-success bg-success/20 px-2 py-0.5 rounded-full">-2% vs last month</span>
+                      <span className="text-2xl font-bold">
+                        {formatCurrency(totals.expenses, currency)}
+                      </span>
+                      <span className="text-xs text-success bg-success/20 px-2 py-0.5 rounded-full">
+                        -2% vs last month
+                      </span>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="secondary" size="sm">Monthly</Button>
-                    <Button variant="ghost" size="sm">Weekly</Button>
+                    <Button variant="secondary" size="sm">
+                      Monthly
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      Weekly
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -205,17 +257,24 @@ const Dashboard = () => {
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={expenseData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis 
-                        dataKey="name" 
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="hsl(var(--border))"
+                      />
+                      <XAxis
+                        dataKey="name"
                         stroke="hsl(var(--muted-foreground))"
                         fontSize={12}
                       />
-                      <YAxis 
+                      <YAxis
                         stroke="hsl(var(--muted-foreground))"
                         fontSize={12}
                       />
                       <Tooltip
+                        formatter={(value: number) => [
+                          formatCurrency(value, currency),
+                          "Amount",
+                        ]}
                         contentStyle={{
                           backgroundColor: "hsl(var(--card))",
                           border: "1px solid hsl(var(--border))",
@@ -227,7 +286,11 @@ const Dashboard = () => {
                         dataKey="amount"
                         stroke="hsl(262, 60%, 58%)"
                         strokeWidth={3}
-                        dot={{ fill: "hsl(262, 60%, 58%)", strokeWidth: 2, r: 4 }}
+                        dot={{
+                          fill: "hsl(262, 60%, 58%)",
+                          strokeWidth: 2,
+                          r: 4,
+                        }}
                         activeDot={{ r: 6, fill: "hsl(262, 60%, 58%)" }}
                       />
                     </LineChart>
@@ -253,6 +316,12 @@ const Dashboard = () => {
                   {categoryData.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
+                        <Tooltip
+                          formatter={(value: number) => [
+                            formatCurrency(value, currency),
+                            "Value",
+                          ]}
+                        />
                         <Pie
                           data={categoryData}
                           cx="50%"
@@ -275,19 +344,33 @@ const Dashboard = () => {
                   )}
                   {categoryData.length > 0 && (
                     <div className="absolute inset-0 flex items-center justify-center flex-col">
-                      <span className="text-xl font-bold">${(totals.expenses / 1000).toFixed(1)}k</span>
-                      <span className="text-xs text-muted-foreground">Total</span>
+                      <span className="text-lg font-bold">
+                        {formatCurrency(totals.expenses, currency)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        Total
+                      </span>
                     </div>
                   )}
                 </div>
                 <div className="mt-4 space-y-2">
                   {categoryData.slice(0, 4).map((cat) => (
-                    <div key={cat.name} className="flex items-center justify-between text-sm">
+                    <div
+                      key={cat.name}
+                      className="flex items-center justify-between text-sm"
+                    >
                       <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                        <span className="text-muted-foreground">{cat.name}</span>
+                        <div
+                          className="h-3 w-3 rounded-full"
+                          style={{ backgroundColor: cat.color }}
+                        />
+                        <span className="text-muted-foreground">
+                          {cat.name}
+                        </span>
                       </div>
-                      <span className="font-medium">${cat.value.toFixed(0)}</span>
+                      <span className="font-medium">
+                        {formatCurrency(cat.value, currency)}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -305,16 +388,16 @@ const Dashboard = () => {
             transition={{ delay: 0.5 }}
             className="lg:col-span-3"
           >
-            <AIInsightsCard 
-              data={{ 
-                transactions, 
-                goals, 
+            <AIInsightsCard
+              data={{
+                transactions,
+                goals,
                 totals: {
                   income: totals.income,
                   expenses: totals.expenses,
-                  savings: totals.savings
-                } 
-              }} 
+                  savings: totals.savings,
+                },
+              }}
             />
           </motion.div>
 
@@ -340,15 +423,24 @@ const Dashboard = () => {
                 {recentTransactions.length > 0 ? (
                   recentTransactions.map((tx) => (
                     <div key={tx.id} className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${tx.color}`}>
+                      <div
+                        className={`h-10 w-10 rounded-lg flex items-center justify-center ${tx.color}`}
+                      >
                         <tx.icon size={18} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{tx.name}</p>
-                        <p className="text-xs text-muted-foreground">{tx.date}</p>
+                        <p className="font-medium text-sm truncate">
+                          {tx.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {tx.date}
+                        </p>
                       </div>
-                      <span className={`font-semibold text-sm ${tx.amount > 0 ? "text-success" : "text-foreground"}`}>
-                        {tx.amount > 0 ? "+" : ""}{tx.amount.toFixed(2)}
+                      <span
+                        className={`font-semibold text-sm ${tx.amount > 0 ? "text-success" : "text-foreground"}`}
+                      >
+                        {tx.amount > 0 ? "+" : ""}
+                        {formatCurrency(Math.abs(tx.amount), currency)}
                       </span>
                     </div>
                   ))
@@ -363,8 +455,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <AddTransactionModal 
-        isOpen={isTransactionModalOpen} 
+      <AddTransactionModal
+        isOpen={isTransactionModalOpen}
         onClose={() => setIsTransactionModalOpen(false)}
         categories={categories}
         onSubmit={addTransaction}

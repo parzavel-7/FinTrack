@@ -14,7 +14,7 @@ export async function POST(req: Request) {
           error:
             "OPENROUTER_API_KEY not configured. Please add it to your .env.local file.",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -22,15 +22,15 @@ export async function POST(req: Request) {
       As a personal financial advisor, analyze the following financial data and provide 3-5 actionable insights.
       
       Financial Summary:
-      - Total Income: $${totals.income}
-      - Total Expenses: $${totals.expenses}
-      - Current Savings: $${totals.savings}
+      - Total Income: Rs. ${totals.income}
+      - Total Expenses: Rs. ${totals.expenses}
+      - Current Savings: Rs. ${totals.savings}
       
       Goals:
       ${goals
         .map(
           (g: any) =>
-            `- ${g.name}: Target $${g.target_amount}, Current $${g.current_amount}, Status: ${g.status}`
+            `- ${g.name}: Target Rs. ${g.target_amount}, Current Rs. ${g.current_amount}, Status: ${g.status}`,
         )
         .join("\n")}
       
@@ -39,11 +39,13 @@ export async function POST(req: Request) {
         .slice(0, 10)
         .map(
           (t: any) =>
-            `- ${t.date}: ${t.description || "No description"} ($${
+            `- ${t.date}: ${t.description || "No description"} (Rs. ${
               t.amount
-            }) - ${t.type}`
+            }) - ${t.type}`,
         )
         .join("\n")}
+      
+      NOTE: All currency values are in Nepalese Rupees (NPR). Please use the prefix "Rs." when mentioning amounts in your descriptions and summary.
       
       Respond STRICTLY in JSON format with the following structure:
       {
@@ -52,13 +54,13 @@ export async function POST(req: Request) {
             "id": "unique-id",
             "type": "tip" | "warning" | "success" | "info",
             "title": "Short title",
-            "description": "Explanatory text",
+            "description": "Explanatory text (use Rs. prefix)",
             "category": "spending" | "savings" | "goals" | "general",
             "actionLabel": "Optional button text",
             "actionUrl": "Optional relative path"
           }
         ],
-        "summary": "A brief overview sentence of the financial health."
+        "summary": "A brief overview sentence (use Rs. prefix)."
       }
     `;
 
@@ -87,7 +89,7 @@ export async function POST(req: Request) {
           ],
           response_format: { type: "json_object" },
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -111,7 +113,7 @@ export async function POST(req: Request) {
           error: "AI provider error",
           details: errorMessage,
         },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -129,10 +131,10 @@ export async function POST(req: Request) {
     } catch (parseError) {
       console.error(
         "Error parsing OpenRouter response content:",
-        result.choices[0].message.content
+        result.choices[0].message.content,
       );
       throw new Error(
-        "Failed to parse AI response. The model didn't return valid JSON."
+        "Failed to parse AI response. The model didn't return valid JSON.",
       );
     }
 
@@ -144,7 +146,7 @@ export async function POST(req: Request) {
     console.error("AI Insights Route Error:", error);
     return NextResponse.json(
       { error: error.message || "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

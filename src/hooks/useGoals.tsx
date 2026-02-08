@@ -23,7 +23,7 @@ export function useGoals() {
 
   const fetchGoals = async () => {
     if (!user) return;
-    
+
     const { data, error } = await supabase
       .from("goals")
       .select("*")
@@ -49,18 +49,18 @@ export function useGoals() {
 
       // Realtime subscription
       const channel = supabase
-        .channel('goals-changes')
+        .channel("goals-changes")
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: '*',
-            schema: 'public',
-            table: 'goals',
+            event: "*",
+            schema: "public",
+            table: "goals",
             filter: `user_id=eq.${user.id}`,
           },
           () => {
             fetchGoals();
-          }
+          },
         )
         .subscribe();
 
@@ -89,10 +89,7 @@ export function useGoals() {
   };
 
   const updateGoal = async (id: string, updates: Partial<Goal>) => {
-    const { error } = await supabase
-      .from("goals")
-      .update(updates)
-      .eq("id", id);
+    const { error } = await supabase.from("goals").update(updates).eq("id", id);
 
     if (error) {
       return { error };
@@ -118,16 +115,35 @@ export function useGoals() {
   };
 
   const addFundsToGoal = async (id: string, amount: number) => {
-    const goal = goals.find((g) => g.id === id); // Updated to use .id
-    if (!goal) return { error: new Error("Goal not found") };
+    const goal = goals.find((g) => g.id === id);
+    if (!goal) return { error: new Error("Goal not found"), reached: false };
 
     const newAmount = Number(goal.current_amount) + amount;
-    return updateGoal(id, { current_amount: newAmount });
+    const targetAmount = Number(goal.target_amount);
+
+    const wasAlreadyReached =
+      goal.status === "reached" || Number(goal.current_amount) >= targetAmount;
+    const isNowReached = newAmount >= targetAmount;
+    const justReached = !wasAlreadyReached && isNowReached;
+
+    const updates: Partial<Goal> = { current_amount: newAmount };
+    if (isNowReached && goal.status !== "reached") {
+      updates.status = "reached";
+    }
+
+    const { error } = await updateGoal(id, updates);
+    return { error, reached: justReached };
   };
 
   const getTotals = () => {
-    const totalSaved = goals.reduce((sum, g) => sum + Number(g.current_amount), 0);
-    const totalTarget = goals.reduce((sum, g) => sum + Number(g.target_amount), 0);
+    const totalSaved = goals.reduce(
+      (sum, g) => sum + Number(g.current_amount),
+      0,
+    );
+    const totalTarget = goals.reduce(
+      (sum, g) => sum + Number(g.target_amount),
+      0,
+    );
     return { totalSaved, totalTarget };
   };
 
@@ -137,8 +153,8 @@ export function useGoals() {
     addGoal,
     updateGoal,
     deleteGoal,
-    addFundsToGoal, // Included in return
-    getTotals,      // Included in return
+    addFundsToGoal,
+    getTotals,
     refetch: fetchGoals,
   };
 }

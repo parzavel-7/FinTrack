@@ -22,9 +22,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppLayout from "@/components/AppLayout";
 import { useGoals, Goal } from "@/hooks/useGoals";
+import { useProfile } from "@/hooks/useProfile";
+import { formatCurrency } from "@/lib/utils";
 import { AddGoalModal } from "@/components/AddGoalModal";
 import { AddFundsModal } from "@/components/AddFundsModal";
 import { format } from "date-fns";
+import confetti from "canvas-confetti";
 
 const iconMap: Record<string, React.ElementType> = {
   Target,
@@ -39,7 +42,10 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 const Goals = () => {
-  const { goals, loading, getTotals, deleteGoal, addGoal, addFundsToGoal } = useGoals();
+  const { goals, loading, getTotals, deleteGoal, addGoal, addFundsToGoal } =
+    useGoals();
+  const { profile } = useProfile();
+  const currency = profile?.currency || "NPR";
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [fundsModalOpen, setFundsModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
@@ -53,6 +59,19 @@ const Goals = () => {
   const handleAddFunds = (goal: Goal) => {
     setSelectedGoal(goal);
     setFundsModalOpen(true);
+  };
+
+  const handleAddFundsToGoal = async (id: string, amount: number) => {
+    const result = await addFundsToGoal(id, amount);
+    if (result.reached) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ["#8B5CF6", "#D946EF", "#F97316", "#10B981"],
+      });
+    }
+    return result;
   };
 
   if (loading) {
@@ -77,7 +96,9 @@ const Goals = () => {
               </div>
               Financial Goals
             </h1>
-            <p className="text-muted-foreground mt-1">Track your progress towards financial milestones</p>
+            <p className="text-muted-foreground mt-1">
+              Track your progress towards financial milestones
+            </p>
           </div>
           <Button variant="hero" onClick={() => setAddModalOpen(true)}>
             <Plus size={18} />
@@ -98,7 +119,9 @@ const Goals = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Saved</p>
-                  <p className="text-2xl font-bold">${totalSaved.toLocaleString()}</p>
+                  <p className="text-2xl font-bold">
+                    {formatCurrency(totalSaved, currency)}
+                  </p>
                 </div>
               </div>
             </Card>
@@ -116,7 +139,9 @@ const Goals = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Target</p>
-                  <p className="text-2xl font-bold">${totalTarget.toLocaleString()}</p>
+                  <p className="text-2xl font-bold">
+                    {formatCurrency(totalTarget, currency)}
+                  </p>
                 </div>
               </div>
             </Card>
@@ -147,7 +172,9 @@ const Goals = () => {
             <div className="text-center">
               <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No goals yet</h3>
-              <p className="text-muted-foreground mb-4">Start by creating your first financial goal</p>
+              <p className="text-muted-foreground mb-4">
+                Start by creating your first financial goal
+              </p>
               <Button variant="hero" onClick={() => setAddModalOpen(true)}>
                 <Plus size={18} />
                 Add Your First Goal
@@ -157,11 +184,15 @@ const Goals = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {goals.map((goal, index) => {
-              const progress = calculateProgress(Number(goal.current_amount), Number(goal.target_amount));
-              const remaining = Number(goal.target_amount) - Number(goal.current_amount);
+              const progress = calculateProgress(
+                Number(goal.current_amount),
+                Number(goal.target_amount),
+              );
+              const remaining =
+                Number(goal.target_amount) - Number(goal.current_amount);
               const IconComponent = iconMap[goal.icon || "Target"] || Target;
               const color = goal.color || "hsl(262, 60%, 58%)";
-              
+
               return (
                 <motion.div
                   key={goal.id}
@@ -180,11 +211,16 @@ const Goals = () => {
                             <IconComponent size={24} style={{ color }} />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-lg">{goal.name}</h3>
+                            <h3 className="font-semibold text-lg">
+                              {goal.name}
+                            </h3>
                             {goal.deadline && (
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Calendar size={14} />
-                                <span>Target: {format(new Date(goal.deadline), "MMM yyyy")}</span>
+                                <span>
+                                  Target:{" "}
+                                  {format(new Date(goal.deadline), "MMM yyyy")}
+                                </span>
                               </div>
                             )}
                           </div>
@@ -215,35 +251,79 @@ const Goals = () => {
                             style={{ backgroundColor: color }}
                             initial={{ width: 0 }}
                             animate={{ width: `${progress}%` }}
-                            transition={{ duration: 1, delay: 0.3 + index * 0.1 }}
+                            transition={{
+                              duration: 1,
+                              delay: 0.3 + index * 0.1,
+                            }}
                           />
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="font-medium">${Number(goal.current_amount).toLocaleString()}</span>
-                          <span className="text-muted-foreground">${Number(goal.target_amount).toLocaleString()}</span>
+                          <span className="font-medium">
+                            {formatCurrency(
+                              Number(goal.current_amount),
+                              currency,
+                            )}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {formatCurrency(
+                              Number(goal.target_amount),
+                              currency,
+                            )}
+                          </span>
                         </div>
                       </div>
 
                       {/* Stats */}
                       <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
                         <div>
-                          <p className="text-xs text-muted-foreground">Remaining</p>
-                          <p className="font-semibold">${remaining.toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Remaining
+                          </p>
+                          <p className="font-semibold">
+                            {formatCurrency(remaining, currency)}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground">Progress</p>
+                          <p className="text-xs text-muted-foreground">
+                            Progress
+                          </p>
                           <p className="font-semibold">{progress}% complete</p>
                         </div>
                       </div>
 
-                      <Button
-                        variant="outline"
-                        className="w-full mt-4"
-                        size="sm"
-                        onClick={() => handleAddFunds(goal)}
-                      >
-                        Add Funds
-                      </Button>
+                      <div className="mt-4">
+                        {goal.status === "reached" || progress >= 100 ? (
+                          <div className="space-y-3">
+                            <div className="p-3 rounded-lg bg-success/10 border border-success/20 text-center">
+                              <p className="text-sm font-medium text-success flex items-center justify-center gap-2">
+                                <PiggyBank size={16} />
+                                Goal Achieved!
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                You've reached your target. Consider creating a
+                                new goal to keep the momentum going!
+                              </p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              className="w-full opacity-50 cursor-not-allowed"
+                              size="sm"
+                              disabled
+                            >
+                              Goal Completed
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            className="w-full"
+                            size="sm"
+                            onClick={() => handleAddFunds(goal)}
+                          >
+                            Add Funds
+                          </Button>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -268,9 +348,18 @@ const Goals = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                  { title: "Automate Savings", desc: "Set up automatic transfers on payday" },
-                  { title: "Round Up Purchases", desc: "Round up transactions to boost savings" },
-                  { title: "Review Monthly", desc: "Adjust contributions based on income changes" },
+                  {
+                    title: "Automate Savings",
+                    desc: "Set up automatic transfers on payday",
+                  },
+                  {
+                    title: "Round Up Purchases",
+                    desc: "Round up transactions to boost savings",
+                  },
+                  {
+                    title: "Review Monthly",
+                    desc: "Adjust contributions based on income changes",
+                  },
                 ].map((tip, index) => (
                   <div key={index} className="p-4 rounded-lg bg-secondary/50">
                     <h4 className="font-medium mb-1">{tip.title}</h4>
@@ -283,16 +372,16 @@ const Goals = () => {
         </motion.div>
       </div>
 
-      <AddGoalModal 
-        open={addModalOpen} 
-        onOpenChange={setAddModalOpen} 
+      <AddGoalModal
+        open={addModalOpen}
+        onOpenChange={setAddModalOpen}
         onAdd={addGoal}
       />
-      <AddFundsModal 
-        open={fundsModalOpen} 
-        onOpenChange={setFundsModalOpen} 
-        goal={selectedGoal} 
-        onAddFunds={addFundsToGoal}
+      <AddFundsModal
+        open={fundsModalOpen}
+        onOpenChange={setFundsModalOpen}
+        goal={selectedGoal}
+        onAddFunds={handleAddFundsToGoal}
       />
     </AppLayout>
   );
