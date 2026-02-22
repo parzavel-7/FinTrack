@@ -32,7 +32,7 @@ const Logo = ({ size = "md", showText = true }: LogoProps) => {
       </div>
       {showText && (
         <span className={`${textSizes[size]} font-bold tracking-tight`}>
-          <span className="text-white">Fin</span>
+          <span className="text-foreground">Fin</span>
           <span style={{ color: "#8A5AD4" }}>Track</span>
         </span>
       )}
