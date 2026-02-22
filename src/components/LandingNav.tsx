@@ -4,9 +4,9 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const LandingNav = () => {
-
   const navItems = [
     { label: "Features", href: "#features" },
     { label: "How It Works", href: "#how-it-works" },
@@ -36,6 +36,7 @@ const LandingNav = () => {
         </div>
 
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <Link href="/login">
             <Button variant="ghost" size="sm">
               Log In

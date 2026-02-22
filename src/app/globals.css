@@ -136,7 +136,22 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground antialiased transition-colors duration-300;
+  }
+
+  /* Smooth transitions for common elements */
+  div,
+  header,
+  footer,
+  section,
+  nav,
+  aside,
+  card,
+  button,
+  input,
+  select,
+  textarea {
+    @apply transition-colors duration-300;
   }
 
   /* Custom scrollbar */
