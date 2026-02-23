@@ -14,6 +14,7 @@ import {
   User,
   Sun,
   Moon,
+  Menu,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -25,6 +26,7 @@ import { useAuth } from "../hooks/useAuth";
 import { NotificationsPopover } from "./NotificationsPopover";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
+import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -46,6 +48,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -133,8 +136,68 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         {/* Top Navigation */}
         <header className="h-16 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-40">
           <div className="h-full px-6 flex items-center justify-between gap-4">
-            {/* Mobile Logo */}
-            <div className="lg:hidden">
+            {/* Mobile Navigation */}
+            <div className="lg:hidden flex items-center gap-2">
+              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="md:hidden">
+                    <Menu size={20} />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-72">
+                  <div className="flex flex-col h-full bg-sidebar p-4">
+                    <div className="mb-8 pt-4">
+                      <Logo size="md" />
+                    </div>
+
+                    <nav className="flex-1 space-y-1">
+                      {navItems.map((item) => {
+                        const isActive = pathname === item.href;
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                              isActive
+                                ? "bg-primary/10 text-primary border-l-2 border-primary"
+                                : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                            }`}
+                          >
+                            <item.icon size={20} />
+                            {item.label}
+                          </Link>
+                        );
+                      })}
+                    </nav>
+
+                    <div className="pt-4 border-t border-border space-y-1">
+                      <Link
+                        href="/settings"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                          pathname === "/settings"
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                        }`}
+                      >
+                        <Settings size={20} />
+                        Settings
+                      </Link>
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-all duration-200"
+                      >
+                        <LogOut size={20} />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
               <Logo size="sm" showText={false} />
             </div>
 
@@ -185,7 +248,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                 </Button>
               )}
               <NotificationsPopover />
-              <Link href="/settings">
+              <Link href="/settings" className="hidden sm:block">
                 <Button variant="ghost" size="icon">
                   <Settings size={20} />
                 </Button>
@@ -206,7 +269,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-4 md:p-6 overflow-auto">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}

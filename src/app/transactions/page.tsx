@@ -228,10 +228,10 @@ const Transactions = () => {
                   <th className="text-left py-4 px-6 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Transaction
                   </th>
-                  <th className="text-left py-4 px-6 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="hidden sm:table-cell text-left py-4 px-6 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Category
                   </th>
-                  <th className="text-left py-4 px-6 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="hidden md:table-cell text-left py-4 px-6 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Date
                   </th>
                   <th className="text-left py-4 px-6 text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -282,12 +282,12 @@ const Transactions = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="py-4 px-6">
+                        <td className="hidden sm:table-cell py-4 px-6">
                           <span className="px-3 py-1 rounded-full text-xs bg-secondary text-muted-foreground">
                             {tx.category?.name || "Uncategorized"}
                           </span>
                         </td>
-                        <td className="py-4 px-6 text-sm text-muted-foreground">
+                        <td className="hidden md:table-cell py-4 px-6 text-sm text-muted-foreground">
                           {new Date(tx.date).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",

@@ -5,6 +5,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Menu } from "lucide-react";
+import { useState } from "react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const LandingNav = () => {
   const navItems = [
@@ -12,6 +15,7 @@ const LandingNav = () => {
     { label: "How It Works", href: "#how-it-works" },
     { label: "Security", href: "#security" },
   ];
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <motion.header
@@ -36,17 +40,58 @@ const LandingNav = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <Link href="/login">
-            <Button variant="ghost" size="sm">
-              Log In
-            </Button>
-          </Link>
-          <Link href="/signup">
-            <Button variant="hero" size="sm">
-              Get Started
-            </Button>
-          </Link>
+          <div className="hidden sm:flex items-center gap-3">
+            <ThemeToggle />
+            <Link href="/login">
+              <Button variant="ghost" size="sm">
+                Log In
+              </Button>
+            </Link>
+            <Link href="/signup">
+              <Button variant="hero" size="sm">
+                Get Started
+              </Button>
+            </Link>
+          </div>
+
+          <div className="flex sm:hidden items-center gap-2">
+            <ThemeToggle />
+          </div>
+
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu size={20} />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="flex flex-col gap-6 pt-12">
+              <div className="flex flex-col gap-4">
+                {navItems.map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className="text-lg font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+              <hr className="border-border" />
+              <div className="flex flex-col gap-3">
+                <Link href="/login" onClick={() => setIsOpen(false)}>
+                  <Button variant="outline" className="w-full justify-start">
+                    Log In
+                  </Button>
+                </Link>
+                <Link href="/signup" onClick={() => setIsOpen(false)}>
+                  <Button variant="hero" className="w-full justify-start">
+                    Get Started
+                  </Button>
+                </Link>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </nav>
     </motion.header>
