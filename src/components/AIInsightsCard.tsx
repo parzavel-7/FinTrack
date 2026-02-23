@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sparkles, RefreshCcw, BrainCircuit } from "lucide-react";
 import { InsightItem } from "./InsightItem";
@@ -37,7 +43,7 @@ export function AIInsightsCard({ data }: AIInsightsCardProps) {
       <div className="absolute top-0 right-0 p-6 opacity-[0.03] pointer-events-none">
         <BrainCircuit className="w-32 h-32" />
       </div>
-      
+
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -46,17 +52,21 @@ export function AIInsightsCard({ data }: AIInsightsCardProps) {
             </div>
             <div>
               <CardTitle className="text-xl">AI Financial Insights</CardTitle>
-              <CardDescription>Smart analysis of your spending and goals</CardDescription>
+              <CardDescription>
+                Smart analysis of your spending and goals
+              </CardDescription>
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefresh} 
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
             disabled={loading}
             className="gap-2"
           >
-            <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCcw
+              className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+            />
             {loading ? "Analyzing..." : "Refresh"}
           </Button>
         </div>
@@ -67,7 +77,10 @@ export function AIInsightsCard({ data }: AIInsightsCardProps) {
           <div className="space-y-4">
             <Skeleton className="h-4 w-3/4" />
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex gap-4 p-4 rounded-xl border border-border/50">
+              <div
+                key={i}
+                className="flex gap-4 p-4 rounded-xl border border-border/50"
+              >
                 <Skeleton className="w-10 h-10 rounded-lg" />
                 <div className="flex-1 space-y-2">
                   <Skeleton className="h-4 w-1/4" />
@@ -90,12 +103,12 @@ export function AIInsightsCard({ data }: AIInsightsCardProps) {
           <>
             {insights.summary && (
               <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
-                <p className="text-sm font-medium text-primary-foreground/90 italic">
+                <p className="text-sm font-medium text-foreground italic">
                   "{insights.summary}"
                 </p>
               </div>
             )}
-            
+
             <div className="grid gap-3">
               {insights.insights.map((insight) => (
                 <InsightItem key={insight.id} insight={insight} />

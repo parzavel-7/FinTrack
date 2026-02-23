@@ -56,12 +56,12 @@ export default function AIInsightsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
           <div className="p-6 rounded-2xl border border-border bg-card/50 space-y-3">
             <h3 className="font-semibold text-lg">How it works</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-foreground leading-relaxed">
               Our AI analyzes your transaction history, spending categories, and
               financial goals to identify patterns and opportunities you might
               have missed.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-2 list-disc pl-4">
+            <ul className="text-sm text-foreground space-y-2 list-disc pl-4">
               <li>Identifies unusual spending spikes</li>
               <li>Suggests budget optimizations</li>
               <li>Predicts goal achievement timelines</li>
@@ -71,7 +71,7 @@ export default function AIInsightsPage() {
 
           <div className="p-6 rounded-2xl border border-border bg-card/50 space-y-3">
             <h3 className="font-semibold text-lg">Privacy & Security</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-foreground leading-relaxed">
               Your financial data is encrypted and only shared with the AI model
               for analysis. We don't store your data on AI servers, and it's
               never used for training.
